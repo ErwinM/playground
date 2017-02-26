@@ -129,6 +129,7 @@ begin
           3'b101:
             begin
               OP0S = 2'b10;
+              OP1S = 0;
               REGWS = tgt;
               REG_LOAD = 1'b1;
             end

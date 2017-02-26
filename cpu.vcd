@@ -1,0 +1,342 @@
+$date
+	Sun Feb 26 10:36:59 2017
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module cpu_tb $end
+$var reg 1 ! clk $end
+$var reg 1 " reset $end
+$scope module U0 $end
+$var wire 16 # MARin [15:0] $end
+$var wire 16 $ RAMin [15:0] $end
+$var wire 1 ! clk $end
+$var wire 3 % f [2:0] $end
+$var wire 1 & incr_pc $end
+$var wire 1 ' ir_load $end
+$var wire 1 ( mar_load $end
+$var wire 3 ) regr0s [2:0] $end
+$var wire 3 * regr1s [2:0] $end
+$var wire 16 + regw [15:0] $end
+$var wire 1 , reset $end
+$var wire 3 - regws [2:0] $end
+$var wire 16 . regr1 [15:0] $end
+$var wire 16 / regr0 [15:0] $end
+$var wire 1 0 reg_load $end
+$var wire 2 1 op1s [1:0] $end
+$var wire 2 2 op0s [1:0] $end
+$var wire 2 3 mdrs [1:0] $end
+$var wire 1 4 mdr_load $end
+$var wire 16 5 MDRout [15:0] $end
+$var wire 16 6 MARout [15:0] $end
+$var wire 16 7 IRout [15:0] $end
+$var wire 13 8 IRimm [12:0] $end
+$var wire 16 9 ALUout [15:0] $end
+$var reg 16 : MDRin [15:0] $end
+$var reg 16 ; op0 [15:0] $end
+$var reg 16 < op1 [15:0] $end
+$scope module IR $end
+$var wire 1 ! clk $end
+$var wire 16 = in [15:0] $end
+$var wire 1 ' load $end
+$var wire 1 , reset $end
+$var reg 16 > out [15:0] $end
+$upscope $end
+$scope module MAR $end
+$var wire 1 ! clk $end
+$var wire 16 ? in [15:0] $end
+$var wire 1 ( load $end
+$var wire 1 , reset $end
+$var reg 16 @ out [15:0] $end
+$upscope $end
+$scope module MDR $end
+$var wire 1 ! clk $end
+$var wire 16 A in [15:0] $end
+$var wire 1 , reset $end
+$var wire 1 4 load $end
+$var reg 16 B out [15:0] $end
+$upscope $end
+$scope module alu $end
+$var wire 3 C f [2:0] $end
+$var wire 16 D x [15:0] $end
+$var wire 16 E y [15:0] $end
+$var reg 16 F out [15:0] $end
+$upscope $end
+$scope module decoder $end
+$var wire 1 ! clk $end
+$var wire 3 G tgt [2:0] $end
+$var wire 3 H opc0 [2:0] $end
+$var wire 4 I next_state [3:0] $end
+$var wire 11 J imm10 [10:0] $end
+$var reg 13 K IRimm [12:0] $end
+$var reg 2 L MDRS [1:0] $end
+$var reg 1 4 MDR_LOAD $end
+$var reg 2 M OP0S [1:0] $end
+$var reg 2 N OP1S [1:0] $end
+$var reg 1 O REGR0S $end
+$var reg 1 P REGR1S $end
+$var reg 3 Q REGWS [2:0] $end
+$var reg 1 0 REG_LOAD $end
+$var reg 16 R instr [15:0] $end
+$var reg 4 S state [3:0] $end
+$scope function fsm_function $end
+$var reg 4 T fsm_function [3:0] $end
+$var reg 4 U state [3:0] $end
+$upscope $end
+$upscope $end
+$scope module regfile $end
+$var wire 1 ! clk $end
+$var wire 1 & incr_pc $end
+$var wire 3 V regr0s [2:0] $end
+$var wire 3 W regr1s [2:0] $end
+$var wire 16 X regw [15:0] $end
+$var wire 3 Y regws [2:0] $end
+$var wire 1 0 we $end
+$var reg 16 Z R1 [15:0] $end
+$var reg 16 [ R2 [15:0] $end
+$var reg 16 \ R3 [15:0] $end
+$var reg 16 ] R4 [15:0] $end
+$var reg 16 ^ R5 [15:0] $end
+$var reg 16 _ R6 [15:0] $end
+$var reg 16 ` R7 [15:0] $end
+$var reg 16 a regr0 [15:0] $end
+$var reg 16 b regr1 [15:0] $end
+$upscope $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+bx b
+b0 a
+b0 `
+bx _
+bx ^
+bx ]
+bx \
+b101010101010101 [
+bx Z
+bx Y
+bx X
+bz W
+bz V
+bx U
+b1 T
+bx S
+b1010001100100010 R
+bx Q
+xP
+xO
+bx N
+bx M
+bx L
+b1100100 K
+b1100100 J
+b1 I
+b101 H
+b10 G
+bx F
+bx E
+bx D
+bz C
+b0 B
+bx A
+b0 @
+bz ?
+b0 >
+bz =
+bx <
+bx ;
+bx :
+bx 9
+b1100100 8
+b0 7
+b0 6
+b0 5
+04
+bx 3
+bx 2
+bx 1
+00
+b0 /
+bx .
+bx -
+z,
+bx +
+bz *
+bz )
+z(
+z'
+z&
+bz %
+bz $
+bz #
+0"
+0!
+$end
+#5
+1!
+#6
+b0 +
+b0 X
+b0 9
+b0 F
+b0 <
+b0 E
+b0 ;
+b0 D
+b1100100 :
+b1100100 A
+0P
+0O
+b0 1
+b0 N
+b0 2
+b0 M
+b0 3
+b0 L
+b10 I
+b10 T
+b1 U
+b1 S
+#10
+0!
+#15
+1!
+#16
+14
+b10 2
+b10 M
+b100 I
+b100 T
+b10 U
+b10 S
+#20
+b1100100 +
+b1100100 X
+b1100100 9
+b1100100 F
+b1100100 ;
+b1100100 D
+b1100100 5
+b1100100 B
+0!
+#25
+1!
+#26
+04
+b1000 I
+b1000 T
+b100 U
+b100 S
+#30
+0!
+#35
+1!
+#36
+10
+b10 -
+b10 Q
+b10 Y
+b1 I
+b1 T
+b1000 U
+b1000 S
+#40
+b1100100 [
+0!
+#45
+1!
+#46
+b0 +
+b0 X
+b0 9
+b0 F
+b0 ;
+b0 D
+b0 2
+b0 M
+00
+b10 I
+b10 T
+b1 U
+b1 S
+#50
+0!
+#55
+1!
+#56
+b1100100 +
+b1100100 X
+b1100100 9
+b1100100 F
+b1100100 ;
+b1100100 D
+14
+b10 2
+b10 M
+b100 I
+b100 T
+b10 U
+b10 S
+#60
+0!
+#65
+1!
+#66
+04
+b1000 I
+b1000 T
+b100 U
+b100 S
+#70
+0!
+#75
+1!
+#76
+10
+b1 I
+b1 T
+b1000 U
+b1000 S
+#80
+0!
+#85
+1!
+#86
+b0 +
+b0 X
+b0 9
+b0 F
+b0 ;
+b0 D
+b0 2
+b0 M
+00
+b10 I
+b10 T
+b1 U
+b1 S
+#90
+0!
+#95
+1!
+#96
+b1100100 +
+b1100100 X
+b1100100 9
+b1100100 F
+b1100100 ;
+b1100100 D
+14
+b10 2
+b10 M
+b100 I
+b100 T
+b10 U
+b10 S
+#100
+0!

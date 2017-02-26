@@ -1,26 +1,38 @@
 
 module cpu (
   // reset,
-//   RAMin,
-//   RAMout,
-//we,
+  RAMin,
+  RAMout,
+  we,
+  RAMaddr,
   clk
 );
 
 // i/o
 input clk;
+input [15:0] RAMout;
+output we;
+output [15:0] RAMin, RAMaddr;
 
 wire [1:0] op0s, op1s, mdrs;
 wire [12:0] IRimm;
 wire [2:0]  regr0s, regr1s, regws;
+wire [15:0] IRout;
 
 decoder decoder (
+  .instr      (RAMout),
   .MDR_LOAD   (mdr_load),
+  .MAR_LOAD   (mar_load),
   .REG_LOAD   (reg_load),
+  .RAM_LOAD   (ram_load),
+  .IR_LOAD    (ir_load),
+  .INCR_PC    (incr_pc),
   .OP0S       (op0s),
   .OP1S       (op1s),
   .IRimm      (IRimm),
   .MDRS       (mdrs),
+  .REGR0S     (regr0s),
+  .REGR1S     (regr1s),
   .REGWS      (regws),
   .clk        (clk)
 );
@@ -28,7 +40,7 @@ decoder decoder (
 
 // SYSREGS
 // register(in, reset, load, clk, out)
-wire [15:0] MDRout, MARin, MARout, IRin, IRout, RAMin;
+wire [15:0] MDRout, MARin, MARout, IRin;
 reg [15:0] MDRin;
 
 register MDR (
@@ -47,8 +59,8 @@ register MAR (
   .out    (MARout)
 );
 
-register IR (
-  .in     (RAMin),
+register_posedge IR (
+  .in     (RAMout),
   .reset  (reset),
   .load   (ir_load),
   .clk    (clk),
@@ -84,6 +96,10 @@ alu alu (
 );
 
 assign regw = ALUout;
+assign MARin = ALUout;
+assign RAMin = MDRout;
+assign we = ram_load;
+assign RAMaddr = MARout;
 
 // bussel muxes
 // MDRS: 0: Imm, 1: RAM, 2:ALU

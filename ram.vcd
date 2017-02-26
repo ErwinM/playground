@@ -1,0 +1,92 @@
+$date
+	Sun Feb 26 18:50:11 2017
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module ram_tb $end
+$var reg 16 ! addr [15:0] $end
+$var reg 1 " clk $end
+$scope module U0 $end
+$var wire 16 # address [15:0] $end
+$var wire 1 " clk $end
+$var wire 16 $ data_in [15:0] $end
+$var wire 1 % we $end
+$var wire 16 & data_out [15:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+b1010001100100010 &
+z%
+bz $
+b0 #
+0"
+b0 !
+$end
+#5
+b1010001000100100 &
+b10 !
+b10 #
+1"
+#10
+0"
+#15
+bx &
+b100 !
+b100 #
+1"
+#20
+0"
+#25
+b110 !
+b110 #
+1"
+#30
+0"
+#35
+b1000 !
+b1000 #
+1"
+#40
+0"
+#45
+b1010 !
+b1010 #
+1"
+#50
+0"
+#55
+b1100 !
+b1100 #
+1"
+#60
+0"
+#65
+b1110 !
+b1110 #
+1"
+#70
+0"
+#75
+b10000 !
+b10000 #
+1"
+#80
+0"
+#85
+b10010 !
+b10010 #
+1"
+#90
+0"
+#95
+b10100 !
+b10100 #
+1"
+#100
+0"

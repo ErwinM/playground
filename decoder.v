@@ -2,14 +2,15 @@
 //
 
 module decoder (
-  // instr,
- //  mar_load,
- //  ir_load,
+  instr,
+  MAR_LOAD,
+  IR_LOAD,
   MDR_LOAD,
   REG_LOAD,
-//  ram_load,
- //  regr0s,
- //  regr1s,
+  RAM_LOAD,
+  INCR_PC,
+  REGR0S,
+  REGR1S,
   REGWS,
   OP0S,
   OP1S,
@@ -21,15 +22,16 @@ module decoder (
 );
 
 input clk;
-output MDR_LOAD, REG_LOAD;
+input [15:0] instr;
+output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC;
 output [1:0] MDRS, OP0S, OP1S;
 output [12:0] IRimm;
-output [2:0] REGWS;
+output [2:0] REGWS, REGR0S, REGR1S;
 
 //outputs
 reg [12:0] IRimm;
 // csig
-reg MDR_LOAD, REG_LOAD;
+reg MDR_LOAD, REG_LOAD, MAR_LOAD, INCR_PC, IR_LOAD, RAM_LOAD;
 
 //regsel
 reg REGR0S, REGR1S, REGWS;
@@ -40,8 +42,6 @@ reg REGR0S, REGR1S, REGWS;
 reg [1:0] MDRS, OP0S, OP1S;
 
 // internal registers
-reg [15:0] instr = 16'b1010001100100010;
-
 reg [3:0] state;
 wire [3:0] next_state;
 
@@ -54,6 +54,10 @@ parameter FETCH = 4'b0001, DECODE = 4'b0010, READ = 4'b0100, EXEC = 4'b1000;
 
 assign next_state = fsm_function(state);
 
+initial begin
+  state = 0;
+  //reset = 0;
+end
 
 function [3:0] fsm_function;
 	input [3:0] state;
@@ -88,16 +92,25 @@ begin
 
   // reset csig and bussel?
   MDR_LOAD = 0;
+  MAR_LOAD = 0;
   REG_LOAD = 0;
+  IR_LOAD = 0;
+  INCR_PC = 0;
   // generate csig and bussel
   case(state)
     FETCH:
       begin
         MDRS = 0;
         OP0S = 0;
-        OP1S = 0;
+        //OP1S = 0;
         REGR0S = 0;
-        REGR1S = 0;
+        //REGR1S = 0;
+
+        REGR1S = 3'b111;
+        OP1S = 2'b01;
+        MAR_LOAD = 1'b1;
+        INCR_PC = 1'b1;
+        IR_LOAD = 1'b1;
       end
     DECODE:
       begin

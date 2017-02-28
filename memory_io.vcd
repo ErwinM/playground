@@ -1,0 +1,98 @@
+$date
+	Tue Feb 28 10:27:20 2017
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module memory_io_tb $end
+$var reg 1 ! clk $end
+$var reg 16 " cpuaddr [15:0] $end
+$var reg 2 # cpube [1:0] $end
+$var reg 1 $ cpuwe $end
+$var reg 16 % cpuwrite [15:0] $end
+$var reg 16 & ramread [15:0] $end
+$var reg 1 ' reset $end
+$scope module U0 $end
+$var wire 16 ( CPUaddr [15:0] $end
+$var wire 2 ) CPUbe [1:0] $end
+$var wire 16 * CPUread [15:0] $end
+$var wire 1 $ CPUwe $end
+$var wire 16 + CPUwrite [15:0] $end
+$var wire 16 , RAMaddr [15:0] $end
+$var wire 2 - RAMbe [1:0] $end
+$var wire 16 . RAMread [15:0] $end
+$var wire 1 / RAMwe $end
+$var wire 16 0 RAMwrite [15:0] $end
+$var wire 16 1 addr [15:0] $end
+$var reg 2 2 be [1:0] $end
+$var reg 16 3 data [15:0] $end
+$var reg 16 4 wdata [15:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+b1011101100000000 4
+b10101010 3
+b10 2
+b10 1
+b1011101100000000 0
+1/
+b1010101010111011 .
+b10 -
+b10 ,
+b10111011 +
+b10101010 *
+b1 )
+b100 (
+x'
+b1010101010111011 &
+b10111011 %
+1$
+b1 #
+b100 "
+0!
+$end
+#5
+1!
+#10
+0!
+#15
+1!
+#20
+0!
+#25
+1!
+#30
+0!
+#35
+1!
+#40
+0!
+#45
+1!
+#50
+0!
+#55
+1!
+#60
+0!
+#65
+1!
+#70
+0!
+#75
+1!
+#80
+0!
+#85
+1!
+#90
+0!
+#95
+1!
+#100
+0!

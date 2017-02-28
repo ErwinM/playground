@@ -1,0 +1,37 @@
+// Computer
+
+module computer (
+  clk
+);
+
+input clk;
+
+wire [15:0] RAMin, RAMout, RAMaddr, CPUaddr, DEVaddr;
+wire we, be;
+
+cpu cpu (
+  .RAMin (RAMin),
+  .RAMout (RAMout),
+  .RAMaddr  (RAMaddr),
+  .we  (we),
+  .byte_enable (be),
+  .clk (clk)
+);
+
+ram ram (
+  .data_out (RAMout),
+  .data_in  (RAMin),
+  .address  (RAMaddr),
+  .we       (we),
+  .be       (be),
+  .clk      (clk)
+);
+
+// Memory mapping the UART (why not start there right?)
+
+// always @* begin
+//   if CPUaddr[15] == 1'b1;
+//
+// end
+
+endmodule

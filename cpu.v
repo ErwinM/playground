@@ -1,17 +1,19 @@
 
 module cpu (
-  // reset,
+  reset,
   RAMin,
   RAMout,
   we,
   RAMaddr,
+  byte_enable,
   clk
 );
 
 // i/o
-input clk;
+input clk, reset;
 input [15:0] RAMout;
 output we;
+output [1:0] byte_enable;
 output [15:0] RAMin, RAMaddr;
 
 wire [1:0] op0s, op1s, mdrs;
@@ -20,13 +22,14 @@ wire [2:0]  regr0s, regr1s, regws;
 wire [15:0] IRout;
 
 decoder decoder (
-  .instr      (RAMout),
+  .instr      (IRout),
   .MDR_LOAD   (mdr_load),
   .MAR_LOAD   (mar_load),
   .REG_LOAD   (reg_load),
   .RAM_LOAD   (ram_load),
   .IR_LOAD    (ir_load),
   .INCR_PC    (incr_pc),
+  .BYTE_ENABLE (byte_enable),
   .OP0S       (op0s),
   .OP1S       (op1s),
   .IRimm      (IRimm),
@@ -80,6 +83,7 @@ regfile regfile (
   .regws  (regws),
   .we     (reg_load),
   .incr_pc  (incr_pc),
+  .reset		(reset),
   .clk    (clk)
 );
 

@@ -10,12 +10,13 @@ regr1s,
 regws,
 we,
 incr_pc,
+reset,
 clk
 );
 
 input [15:0] regw;
 input [2:0] regr0s, regr1s, regws;
-input we, clk, incr_pc;
+input we, clk, incr_pc, reset;
 output [15:0] regr0, regr1;
 
 reg [15:0] regr0, regr1;
@@ -57,7 +58,11 @@ end
 
 always @(negedge clk)
 begin
-	if (we) begin
+	if (reset && we) begin
+		R7 <= 0;
+	end else if (reset) begin
+		R7 <= 0;
+	end else if (we) begin
 		case(regws)
 		3'b001: R1 <= regw;
 		3'b010: R2 <= regw;

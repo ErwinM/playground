@@ -2,7 +2,7 @@ module computer_tb;
   reg clk, reset;
 
 computer U0 (
-  .clk    (clk)
+  .clock_50_b7a   (clk)
   );
 
   initial begin
@@ -24,7 +24,7 @@ computer U0 (
   end
 
   initial
-  #100 $finish;
+  #200 $finish;
 
   //Rest of testbench code after this line
 

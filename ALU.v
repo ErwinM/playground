@@ -8,7 +8,7 @@ module alu(
   input       [2:0]   f;
   output      [15:0]  out;
 
-  reg out;
+  reg [15:0] out;
 
 
   always @* begin

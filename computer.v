@@ -1,20 +1,22 @@
 // Computer
 
 module computer (
-  clk
+  clock_50_b7a
 );
 
-input clk;
+input clock_50_b7a;
 
-wire [15:0] RAMin, RAMout, RAMaddr;
+wire [15:0] RAMin, RAMout, RAMaddr, CPUaddr, DEVaddr;
 wire we;
+wire [1:0] be;
 
 cpu cpu (
   .RAMin (RAMin),
   .RAMout (RAMout),
   .RAMaddr  (RAMaddr),
   .we  (we),
-  .clk (clk)
+  .byte_enable (be),
+  .clk (clock_50_b7a)
 );
 
 ram ram (
@@ -22,7 +24,15 @@ ram ram (
   .data_in  (RAMin),
   .address  (RAMaddr),
   .we       (we),
-  .clk      (clk)
+  .be       (be),
+  .clk      (clock_50_b7a)
 );
+
+// Memory mapping the UART (why not start there right?)
+
+// always @* begin
+//   if CPUaddr[15] == 1'b1;
+//
+// end
 
 endmodule

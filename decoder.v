@@ -150,7 +150,7 @@ begin
               REGR0S = arg1;
 				      REGR1S = REG0;
               OP0S = OPS_MDR;
-              OP1S = OPS_R1;
+              OP1S = OPS_R0;
               MAR_LOAD = 1;
               MDRS = MDRS_RAM;
               MDR_LOAD = 1;
@@ -170,6 +170,14 @@ begin
     EXEC:
       begin
         case(opc0)
+          b'b000:
+            begin
+              REGR1S = REG0;
+              OP0S = OPS_MDR;
+              OP1S = OPS_R1;
+              REGWS = tgt;
+              REG_LOAD = 1;
+            end
           3'b011:
             begin
               MDRS = MDRS_ALU;

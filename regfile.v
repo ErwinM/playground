@@ -74,10 +74,13 @@ begin
 		endcase
 	end
 
-	// PC should auto increment always (?)
 	if (incr_pc) begin
     R7 <= R7 + 2;
   end
-
 end
+
+// always @(posedge clk) begin
+//   // PC should auto increment always (?)
+//
+// end
 endmodule

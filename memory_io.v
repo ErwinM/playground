@@ -18,7 +18,7 @@ module memory_io(
 
 input [15:0] CPUwrite, RAMread, CPUaddr;
 input CPUwe;
-input [1:0] CPUbe;
+input CPUbe;
 
 output [15:0] CPUread, RAMwrite, RAMaddr;
 output RAMwe;
@@ -59,6 +59,9 @@ assign RAMbe = be;
 
 
 always @* begin
+  wdata = CPUwrite;
+  be = 2'b11;
+  data = RAMread;
   if(CPUwe == 1) begin
     if(CPUbe == 1) begin
       if(CPUaddr[0] == 1) begin
@@ -103,11 +106,6 @@ always @* begin
         //le = 0;
         be = 2'b10;
       end
-    end else begin
-      wdata = CPUwrite;
-      //ue = 1;
-      //le = 1;
-      be = 2'b11;
     end
   end
 
@@ -141,8 +139,6 @@ always @* begin
     data[13] = 0;
     data[14] = 0;
     data[15] = 0;
-  end else begin
-    data = RAMread;
   end
 end
 

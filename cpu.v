@@ -5,21 +5,23 @@ module cpu (
   RAMout,
   we,
   RAMaddr,
-  byte_enable,
+  be,
   clk
 );
 
 // i/o
 input clk, reset;
 input [15:0] RAMout;
-output we;
-output [1:0] byte_enable;
+output we, be;
 output [15:0] RAMin, RAMaddr;
 
 wire [1:0] op0s, op1s, mdrs;
 wire [12:0] IRimm;
 wire [2:0]  regr0s, regr1s, regws;
 wire [15:0] IRout;
+wire [3:0] state;
+
+wire mdr_load, mar_load, reg_load, ram_load, ir_load, incr_pc;
 
 decoder decoder (
   .instr      (IRout),
@@ -29,7 +31,7 @@ decoder decoder (
   .RAM_LOAD   (ram_load),
   .IR_LOAD    (ir_load),
   .INCR_PC    (incr_pc),
-  .BYTE_ENABLE (byte_enable),
+  .BE			  (be),
   .OP0S       (op0s),
   .OP1S       (op1s),
   .IRimm      (IRimm),
@@ -37,6 +39,8 @@ decoder decoder (
   .REGR0S     (regr0s),
   .REGR1S     (regr1s),
   .REGWS      (regws),
+  .state      (state),
+  .reset      (reset),
   .clk        (clk)
 );
 
@@ -46,7 +50,7 @@ decoder decoder (
 wire [15:0] MDRout, MARin, MARout, IRin;
 reg [15:0] MDRin;
 
-register MDR (
+register_posedge MDR (
   .in     (MDRin),
   .reset  (reset),
   .load   (mdr_load),
@@ -54,7 +58,7 @@ register MDR (
   .out    (MDRout)
 );
 
-register MAR (
+register_posedge MAR (
   .in     (MARin),
   .reset  (reset),
   .load   (mar_load),
@@ -62,7 +66,7 @@ register MAR (
   .out    (MARout)
 );
 
-register_posedge IR (
+register IR (
   .in     (RAMout),
   .reset  (reset),
   .load   (ir_load),
@@ -112,20 +116,23 @@ always @* begin
 
   case(mdrs)
   2'b00: MDRin = IRimm;
-  //2'b01: MDRin = RAMout;
+  2'b01: MDRin = RAMout;
   2'b10: MDRin = ALUout;
+  default: MDRin = IRimm;
   endcase
 
   case(op0s)
   2'b00: op0 = regr0;
   2'b01: op0 = regr1;
   2'b10: op0 = MDRout;
+  default: op0 = regr0;
   endcase
 
   case(op1s)
   2'b00: op1 = regr0;
   2'b01: op1 = regr1;
   2'b10: op1 = MDRout;
+  default: op1 = regr1;
   endcase
 end
 

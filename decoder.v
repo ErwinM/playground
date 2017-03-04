@@ -49,9 +49,6 @@ parameter IMM7 = 0, IMM10 = 1, IMM13 = 2;
 
 initial begin
   state = 0;
-  lmdr = 0;
-  lir = 0;
-  lram = 0;
 end
 
 assign next_state = fsm_function(state);
@@ -83,7 +80,7 @@ rom micro (
 
 
 // following regs are triggers to extend mem-i/o during the M cycles
-reg lmdr, lir, lram;
+//reg lmdr, lir, lram;
 wire xir_load, xmdr_load, xram_load;
 
 always @(negedge clk)
@@ -93,29 +90,7 @@ begin
   end else begin
 	  state <= #1 next_state;
   end
-
-  // this extends the mem-i/o triggers to the mem-i/o (..M) cycle
-  // we may be able to get rid of this when switching to SRAM
 end
-
-// always @(posedge clk)
-// begin
-//   // grab the value from the micro code and store it in the reg
-//   // but only if its a non-mem read cycle
-//   if(state == FETCH || state == DECODE || state == READ || state == EXEC) begin
-//     lir = xir_load;
-//     lmdr = xmdr_load;
-//     lram = xram_load;
-//
-//
-//     endcase
-//   end
-// end
-
-// assign IR_LOAD = lir;
-// assign MDR_LOAD = lmdr;
-// assign RAM_LOAD = lram;
-// assign IRimm = xIRimm;
 
 wire codetype;
 wire [5:0] opcodelong;
@@ -161,18 +136,26 @@ assign imms = ROMread[9:7];
 assign OP0S = ROMread[6:5];
 assign OP1S = ROMread[4:3];
 
-// csigs
-assign MAR_LOAD = ROMread[31];
-assign IR_LOAD = ROMread[30];
-assign MDR_LOAD = ROMread[29];
-assign REG_LOAD = ROMread[28];
-assign RAM_LOAD = ROMread[27];
+// csigs - only on xxM cycles
+// mcycle have their lsb 0
+wire loadpos, loadneg;
+//reg marload, irload, mdrload, regload, ramload, incrpc;
+
+assign loadpos = state[1];
+not(loadneg, state[0]);
+
+and( MAR_LOAD, loadpos, ROMread[31]);
+and( IR_LOAD, loadneg, ROMread[30]);
+and( MDR_LOAD, loadpos, ROMread[29]);
+and( REG_LOAD, loadneg, ROMread[28]);
+and( RAM_LOAD, loadneg, ROMread[27]);
 assign INCR_PC = incr_pc;
-//assign SKIP = ROMread[25];
-assign BE = ROMread[24];
+//and( SKIP = ROMread[25];
+and( BE, loadneg, ROMread[24]);
 
 always @* begin
   ROMaddr = 3; // HACK is a zero instruction for now!!!
+  incr_pc = 0;
 
   if(codetype != 1) begin
     opcode = {4'b0, opcodeshort};
@@ -181,16 +164,17 @@ always @* begin
   end
 
   case(state)
-    FETCH: ROMaddr = 2;
-    FETCHM:
+    FETCH:
       begin
-          ROMaddr = 2;
-        end
+        ROMaddr = 2;
+             incr_pc = 1;
+             end
+    FETCHM: ROMaddr = 2;
     DECODE:
       begin
-      ROMaddr = opcode;
-                incr_pc = 1;
-                end
+        ROMaddr = opcode;
+
+      end
     DECODEM: ROMaddr = opcode;
     READ: ROMaddr = opcode + 64;
     READM: ROMaddr = opcode + 64;
@@ -198,6 +182,7 @@ always @* begin
     EXECM: ROMaddr = opcode + 128;
     default: ROMaddr = 3;
   endcase
+
 
   case(xregr0s)
     ARG0: REGR0S = arg0;

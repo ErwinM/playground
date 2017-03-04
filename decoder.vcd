@@ -1,0 +1,266 @@
+$date
+	Sat Mar  4 11:41:47 2017
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module decoder_tb $end
+$var reg 1 ! clk $end
+$var reg 16 " instr [15:0] $end
+$var reg 1 # reset $end
+$scope module U0 $end
+$var wire 1 $ BE $end
+$var wire 1 % INCR_PC $end
+$var wire 1 & IR_LOAD $end
+$var wire 1 ' MAR_LOAD $end
+$var wire 1 ( MDR_LOAD $end
+$var wire 1 ) RAM_LOAD $end
+$var wire 1 * REG_LOAD $end
+$var wire 1 ! clk $end
+$var wire 16 + instr [15:0] $end
+$var wire 1 , load $end
+$var wire 1 - reset $end
+$var wire 4 . xregws [3:0] $end
+$var wire 4 / xregr1s [3:0] $end
+$var wire 4 0 xregr0s [3:0] $end
+$var wire 3 1 tgt2 [2:0] $end
+$var wire 3 2 tgt [2:0] $end
+$var wire 2 3 opcodeshort [1:0] $end
+$var wire 6 4 opcodelong [5:0] $end
+$var wire 4 5 next_state [3:0] $end
+$var wire 4 6 imms [3:0] $end
+$var wire 8 7 imm7 [7:0] $end
+$var wire 10 8 imm10 [9:0] $end
+$var wire 1 9 codetype $end
+$var wire 3 : arg1 [2:0] $end
+$var wire 3 ; arg0 [2:0] $end
+$var wire 32 < ROMread [31:0] $end
+$var wire 2 = OP1S [1:0] $end
+$var wire 2 > OP0S [1:0] $end
+$var wire 2 ? MDRS [1:0] $end
+$var reg 13 @ IRimm [12:0] $end
+$var reg 3 A REGR0S [2:0] $end
+$var reg 3 B REGR1S [2:0] $end
+$var reg 3 C REGWS [2:0] $end
+$var reg 8 D ROMaddr [7:0] $end
+$var reg 1 E incr_pc $end
+$var reg 6 F opcode [5:0] $end
+$var reg 4 G state [3:0] $end
+$scope function fsm_function $end
+$var reg 4 H fsm_function [3:0] $end
+$var reg 4 I state [3:0] $end
+$upscope $end
+$scope module micro $end
+$var wire 8 J address [7:0] $end
+$var wire 32 K data [31:0] $end
+$upscope $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+b0 K
+b11 J
+b0 I
+b1 H
+b0 G
+b0 F
+0E
+b11 D
+b0 C
+b0 B
+b0 A
+b10110 @
+b0 ?
+b0 >
+b0 =
+b0 <
+b1 ;
+b11 :
+09
+b1001011 8
+b10110 7
+b0 6
+b1 5
+b1 4
+b0 3
+b10 2
+b10 1
+b0 0
+b0 /
+b0 .
+z-
+1,
+b1001011010 +
+0*
+0)
+0(
+0'
+0&
+0%
+0$
+0#
+b1001011010 "
+0!
+$end
+#1
+b111 B
+b1 >
+b111 /
+0,
+b11000100000001110000000000100000 <
+b11000100000001110000000000100000 K
+b10 D
+b10 J
+b10 5
+b10 H
+b1 I
+b1 G
+#5
+1!
+#10
+0!
+#11
+1'
+1&
+1,
+b11000100000001110000000000100000 <
+b11000100000001110000000000100000 K
+b10 D
+b10 J
+b11 5
+b11 H
+b10 I
+b10 G
+#15
+1!
+#20
+0!
+#21
+b1001011 @
+b0 B
+0'
+0&
+b1 6
+b10 >
+b0 /
+0,
+1E
+b100000000000000000000011000000 <
+b100000000000000000000011000000 K
+b0 D
+b0 J
+b100 5
+b100 H
+b11 I
+b11 G
+#25
+1!
+#30
+0!
+#31
+1(
+1,
+0E
+b100000000000000000000011000000 <
+b100000000000000000000011000000 K
+b0 D
+b0 J
+b101 5
+b101 H
+b100 I
+b100 G
+#35
+1!
+#40
+0!
+#41
+b10110 @
+0(
+b0 >
+b0 6
+0,
+b0 <
+b0 K
+b1000 D
+b1000 J
+b110 5
+b110 H
+b101 I
+b101 G
+#45
+1!
+#50
+0!
+#51
+1,
+b1000 D
+b1000 J
+b111 5
+b111 H
+b110 I
+b110 G
+#55
+1!
+#60
+0!
+#61
+0,
+b1000 D
+b1000 J
+b1000 5
+b1000 H
+b111 I
+b111 G
+#65
+1!
+#70
+0!
+#71
+1,
+b1000 D
+b1000 J
+b1 5
+b1 H
+b1000 I
+b1000 G
+#75
+1!
+#80
+0!
+#81
+b111 B
+b1 >
+b111 /
+0,
+b11000100000001110000000000100000 <
+b11000100000001110000000000100000 K
+b10 D
+b10 J
+b10 5
+b10 H
+b1 I
+b1 G
+#85
+1!
+#90
+0!
+#91
+1'
+1&
+1,
+b11000100000001110000000000100000 <
+b11000100000001110000000000100000 K
+b10 D
+b10 J
+b11 5
+b11 H
+b10 I
+b10 G
+#95
+1!
+#100
+0!

@@ -8,8 +8,8 @@ input clock_50_b7a;
 
 wire [15:0] CPUwrite, CPUread, CPUaddr, RAMwrite, RAMread, RAMaddr;
 wire CPUwe, RAMwe;
-wire [1:0] CPUbe, RAMbe;
-
+wire [1:0] RAMbe;
+wire CPUbe;
 
 memory_io mem_io (
   .CPUwrite    (CPUwrite),
@@ -31,7 +31,7 @@ cpu cpu (
   .RAMout (CPUread),
   .RAMaddr  (CPUaddr),
   .we  (CPUwe),
-  .byte_enable (CPUbe),
+  .be (CPUbe),
   .clk (clock_50_b7a)
 );
 

@@ -8,6 +8,10 @@ output [15:0] out;
 
 reg [15:0] out;
 
+initial begin
+  out = 0;
+end
+
 always @(negedge clk)
 begin
 

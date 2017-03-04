@@ -21,12 +21,12 @@ output [15:0] regr0, regr1;
 
 reg [15:0] regr0, regr1;
 
-reg [15:0] R1;
-reg [15:0] R2;
-reg [15:0] R3;
-reg [15:0] R4;
-reg [15:0] R5;
-reg [15:0] R6;
+reg [15:0] R1 = 0;
+reg [15:0] R2 = 0;
+reg [15:0] R3 = 0;
+reg [15:0] R4 = 0;
+reg [15:0] R5 = 0;
+reg [15:0] R6 = 0;
 reg [15:0] R7 = 0;
 
 always @*

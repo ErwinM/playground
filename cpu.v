@@ -50,7 +50,7 @@ decoder decoder (
 wire [15:0] MDRout, MARin, MARout, IRin;
 reg [15:0] MDRin;
 
-register_posedge MDR (
+register MDR (
   .in     (MDRin),
   .reset  (reset),
   .load   (mdr_load),
@@ -58,7 +58,7 @@ register_posedge MDR (
   .out    (MDRout)
 );
 
-register_posedge MAR (
+register MAR (
   .in     (MARin),
   .reset  (reset),
   .load   (mar_load),

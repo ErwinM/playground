@@ -12,7 +12,7 @@ decoder U0 (
     clk = 0;
     reset = 0;
 
-    instr = 16'h025a;
+    instr = 16'had01;
 
   end
 

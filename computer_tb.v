@@ -19,9 +19,16 @@ computer U0 (
   initial  begin
     $dumpfile ("computer.vcd");
     $dumpvars;
-    // for (idx = 0; idx < 20; idx = idx + 1) begin
-//       $dumpvars(0, data[idx]);
-//     end
+    $dumpvars(0,computer_tb.U0.ram.memory[0]);
+    $dumpvars(0,computer_tb.U0.ram.memory[1]);
+    $dumpvars(0,computer_tb.U0.ram.memory[2]);
+    $dumpvars(0,computer_tb.U0.ram.memory[3]);
+    $dumpvars(0,computer_tb.U0.ram.memory[4]);
+    $dumpvars(0,computer_tb.U0.ram.memory[5]);
+    $dumpvars(0,computer_tb.U0.ram.memory[6]);
+    $dumpvars(0,computer_tb.U0.ram.memory[7]);
+    $dumpvars(0,computer_tb.U0.ram.memory[8]);
+
   end
 
   initial  begin

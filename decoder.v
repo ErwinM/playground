@@ -17,8 +17,10 @@ module decoder (
   OP1S,
   IRimm,
   MDRS,
+  ALUfunc,
  //  slus,
- //  cond,
+  COND_CHK,
+  cond,
   state,
   reset,
   clk
@@ -27,10 +29,10 @@ module decoder (
 input clk, reset;
 input [15:0] instr;
 
-output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE;
+output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK;
 output [1:0] MDRS, OP0S, OP1S;
 output [12:0] IRimm;
-output [2:0] REGWS, REGR0S, REGR1S;
+output [2:0] REGWS, REGR0S, REGR1S, ALUfunc, cond;
 output [3:0] state;
 
 
@@ -45,7 +47,7 @@ wire [3:0] next_state;
 
 parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
 parameter ARG0 = 8, ARG1 = 9, TGT = 10, TGT2 = 11;
-parameter IMM7 = 0, IMM10 = 1, IMM13 = 2;
+parameter IMM7 = 0, IMM10 = 1, IMM13 = 2, IMMIR = 3;
 
 initial begin
   state = 0;
@@ -71,7 +73,7 @@ endfunction
 
 //outputs
 reg [7:0] ROMaddr;
-wire [31:0] ROMread;
+wire [39:0] ROMread;
 
 rom micro (
   .address (ROMaddr),
@@ -105,12 +107,14 @@ assign opcodelong = instr[14:9];
 assign opcodeshort = instr[14:13];
 
 // Immediates
+wire [12:0] imm13;
 wire [9:0] imm10;
 wire [7:0] imm7;
+reg [4:0] immir;
 
 assign imm7 = instr[8:2];
 assign imm10 = instr[12:3];
-
+assign imm13 = instr[12:0];
 // Arguments
 
 wire [2:0] tgt, arg0, arg1, tgt2;
@@ -124,34 +128,38 @@ assign tgt2 = instr[1:0];
 // Muxes
 wire [3:0] xregr0s, xregr1s, xregws, imms;
 reg [2:0] REGR0S, REGR1S, REGWS;
-wire [1:0] MDRS;
+wire [1:0] MDRS, condtype;
 reg incr_pc;
+wire [2:0] ALUfunc;
+reg [2:0] cond;
 
-
-assign xregr0s = ROMread[23:20];
-assign xregr1s = ROMread[19:16];
-assign xregws = ROMread[15:12];
-assign MDRS = ROMread[11:10];
-assign imms = ROMread[9:7];
-assign OP0S = ROMread[6:5];
-assign OP1S = ROMread[4:3];
+assign xregr0s = ROMread[31:28];
+assign xregr1s = ROMread[27:24];
+assign xregws = ROMread[23:20];
+assign MDRS = ROMread[19:18];
+assign imms = ROMread[17:15];
+assign OP0S = ROMread[14:13];
+assign OP1S = ROMread[12:11];
+assign condtype = ROMread[10:9];
+assign COND_CHK = ROMread[8];
+assign ALUfunc = ROMread[7:5];
 
 // csigs - only on xxM cycles
 // mcycle have their lsb 0
 wire loadpos, loadneg;
 //reg marload, irload, mdrload, regload, ramload, incrpc;
 
-assign loadpos = state[1];
+assign loadpos = state[0];
 not(loadneg, state[0]);
 
-and( MAR_LOAD, loadpos, ROMread[31]);
-and( IR_LOAD, loadneg, ROMread[30]);
-and( MDR_LOAD, loadpos, ROMread[29]);
-and( REG_LOAD, loadneg, ROMread[28]);
-and( RAM_LOAD, loadneg, ROMread[27]);
-assign INCR_PC = incr_pc;
-//and( SKIP = ROMread[25];
-and( BE, loadneg, ROMread[24]);
+and( MAR_LOAD, loadpos, ROMread[39]);
+and( IR_LOAD, loadneg, ROMread[38]);
+and( MDR_LOAD, loadpos, ROMread[37]);
+and( REG_LOAD, loadneg, ROMread[36]);
+and( RAM_LOAD, loadneg, ROMread[35]);
+and( INCR_PC, loadneg, ROMread[34]); //= incr_pc;
+//assign SKIP = ROMread[25];
+and( BE, loadneg, ROMread[32]);
 
 always @* begin
   ROMaddr = 3; // HACK is a zero instruction for now!!!
@@ -167,14 +175,10 @@ always @* begin
     FETCH:
       begin
         ROMaddr = 2;
-             incr_pc = 1;
-             end
-    FETCHM: ROMaddr = 2;
-    DECODE:
-      begin
-        ROMaddr = opcode;
-
+        //incr_pc = 1;
       end
+    FETCHM: ROMaddr = 2;
+    DECODE: ROMaddr = opcode;
     DECODEM: ROMaddr = opcode;
     READ: ROMaddr = opcode + 64;
     READM: ROMaddr = opcode + 64;
@@ -182,7 +186,6 @@ always @* begin
     EXECM: ROMaddr = opcode + 128;
     default: ROMaddr = 3;
   endcase
-
 
   case(xregr0s)
     ARG0: REGR0S = arg0;
@@ -208,12 +211,33 @@ always @* begin
     default: REGWS = xregws[2:0];
   endcase
 
+  case(arg0)
+    // { 1,2,4,8,-8,-4,-2,-1 }
+    0: immir = 1;
+    1: immir = 2;
+    2: immir = 4;
+    3: immir = 8;
+    4: immir = -8;
+    5: immir = -4;
+    6: immir = -2;
+    7: immir = -1;
+  endcase
+
   case(imms)
     IMM7: IRimm = imm7;
     IMM10: IRimm = imm10;
-    //IMM13: IRimm = imm13;
+    IMM13: IRimm = imm13;
+    IMMIR: IRimm = immir;
     default: IRimm = 0;
   endcase
+
+  // cond / skip logic
+  case(condtype)
+    0: cond = 0;
+    1: cond = 1;
+    2: cond = tgt;
+  endcase
+
 
 end
 

@@ -17,11 +17,11 @@ output [15:0] RAMin, RAMaddr;
 
 wire [1:0] op0s, op1s, mdrs;
 wire [12:0] IRimm;
-wire [2:0]  regr0s, regr1s, regws;
+wire [2:0]  regr0s, regr1s, regws, cond, ALUfunc;
 wire [15:0] IRout;
 wire [3:0] state;
 
-wire mdr_load, mar_load, reg_load, ram_load, ir_load, incr_pc;
+wire mdr_load, mar_load, reg_load, ram_load, ir_load, incr_pc, cond_chk;
 
 decoder decoder (
   .instr      (IRout),
@@ -31,7 +31,7 @@ decoder decoder (
   .RAM_LOAD   (ram_load),
   .IR_LOAD    (ir_load),
   .INCR_PC    (incr_pc),
-  .BE			  (be),
+  .BE			    (be),
   .OP0S       (op0s),
   .OP1S       (op1s),
   .IRimm      (IRimm),
@@ -39,6 +39,9 @@ decoder decoder (
   .REGR0S     (regr0s),
   .REGR1S     (regr1s),
   .REGWS      (regws),
+  .ALUfunc    (ALUfunc),
+  .COND_CHK   (cond_chk),
+  .cond       (cond),
   .state      (state),
   .reset      (reset),
   .clk        (clk)
@@ -50,7 +53,7 @@ decoder decoder (
 wire [15:0] MDRout, MARin, MARout, IRin;
 reg [15:0] MDRin;
 
-register MDR (
+register_posedge MDR (
   .in     (MDRin),
   .reset  (reset),
   .load   (mdr_load),
@@ -58,7 +61,7 @@ register MDR (
   .out    (MDRout)
 );
 
-register MAR (
+register_posedge MAR (
   .in     (MARin),
   .reset  (reset),
   .load   (mar_load),
@@ -77,6 +80,13 @@ register IR (
 // REGFILE
 
 wire [15:0] regr0, regr1, regw;
+reg skip;
+wire loadneg, incr_pc_temp;
+
+not(loadneg, state[0]);
+
+or(incr_pc_temp, skip, incr_pc);
+and(incr_pc_out, loadneg, incr_pc_temp);
 
 regfile regfile (
   .regr0  (regr0),
@@ -86,20 +96,19 @@ regfile regfile (
   .regr1s (regr1s),
   .regws  (regws),
   .we     (reg_load),
-  .incr_pc  (incr_pc),
+  .incr_pc  (incr_pc_out),
   .reset		(reset),
   .clk    (clk)
 );
 
 // ALU
 wire [15:0] ALUout;
-wire [2:0] f;
 reg [15:0] op0, op1;
 
 alu alu (
   .x          (op0),
   .y          (op1),
-  .f          (f),
+  .f          (ALUfunc),
   .out        (ALUout)
 );
 
@@ -134,6 +143,31 @@ always @* begin
   2'b10: op1 = MDRout;
   default: op1 = regr1;
   endcase
+
+  // check if we need to skip
+  skip = 0;
+  if (cond_chk == 1) begin
+    if(ALUout == 0) begin
+      // ALU out is 0
+      if(cond == 3 | cond == 0 | cond == 5 ) begin
+        skip = 1;
+      end
+    end
+    if(ALUout[0] == 1) begin
+      // ALUout is neg
+      if(cond == 3 | cond == 1 | cond == 2) begin
+        skip = 1;
+      end
+    end
+    if(ALUout[0] == 0 ) begin
+      // ALUout is pos
+      if(cond == 5 | cond == 1 | cond == 4) begin
+        skip = 1;
+      end
+    end
+    // TO DO: unsigned conditions
+  end
+
 end
 
 endmodule

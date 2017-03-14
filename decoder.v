@@ -47,7 +47,7 @@ wire [3:0] next_state;
 
 parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
 parameter ARG0 = 8, ARG1 = 9, TGT = 10, TGT2 = 11;
-parameter IMM7 = 0, IMM10 = 1, IMM13 = 2, IMMIR = 3;
+parameter IMM7 = 0, IMM10 = 1, IMM13 = 2, IMMIR = 3, IMM7U = 4;
 
 initial begin
   state = 0;
@@ -127,7 +127,8 @@ assign imm10 = instr[12:3];
 assign imm13 = instr[12:0];
 // Arguments
 
-wire [2:0] tgt, arg0, arg1, tgt2;
+wire [2:0] tgt, arg0, arg1;
+wire [1:0] tgt2;
 
 assign arg0 = instr[8:6];
 assign arg1 = instr[5:3];
@@ -218,7 +219,7 @@ always @* begin
     ARG0: REGWS = arg0;
     ARG1: REGWS = arg1;
     TGT: REGWS = tgt;
-    TGT2: REGWS = tgt2;
+    TGT2: REGWS = tgt2 + 1;
     default: REGWS = xregws[2:0];
   endcase
 
@@ -240,6 +241,7 @@ always @* begin
     IMM10: IRimm = { {6{imm10[9]}}, {imm10}} ;
     IMM13: IRimm = { {3{imm10[12]}}, {imm13}} ;
     IMMIR: IRimm = immir; // immir is already 16b
+		IMM7U: IRimm = { {9'b000000000}, {imm7} };
     default: IRimm = 0;
   endcase
 

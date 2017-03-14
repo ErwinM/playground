@@ -88,7 +88,7 @@ not(loadneg, state[0]);
 or(incr_pc_temp, skip, incr_pc);
 and(incr_pc_out, loadneg, incr_pc_temp);
 
-regfile regfile (
+regfile2 regfile (
   .regr0  (regr0),
   .regr1  (regr1),
   .regw   (regw),
@@ -96,6 +96,7 @@ regfile regfile (
   .regr1s (regr1s),
   .regws  (regws),
   .we     (reg_load),
+	.he			(be),
   .incr_pc  (incr_pc_out),
   .reset		(reset),
   .clk    (clk)

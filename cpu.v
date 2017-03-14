@@ -16,7 +16,7 @@ output we, be;
 output [15:0] RAMin, RAMaddr;
 
 wire [1:0] op0s, op1s, mdrs;
-wire [12:0] IRimm;
+wire [15:0] IRimm;
 wire [2:0]  regr0s, regr1s, regws, cond, ALUfunc;
 wire [15:0] IRout;
 wire [3:0] state;
@@ -81,7 +81,7 @@ register IR (
 
 wire [15:0] regr0, regr1, regw;
 reg skip;
-wire loadneg, incr_pc_temp;
+wire loadneg, incr_pc_temp, incr_pc_out;
 
 not(loadneg, state[0]);
 
@@ -152,14 +152,12 @@ always @* begin
       if(cond == 3 | cond == 0 | cond == 5 ) begin
         skip = 1;
       end
-    end
-    if(ALUout[0] == 1) begin
+    end else if (ALUout[0] == 1) begin
       // ALUout is neg
       if(cond == 3 | cond == 1 | cond == 2) begin
         skip = 1;
       end
-    end
-    if(ALUout[0] == 0 ) begin
+    end else if(ALUout[0] == 0 ) begin
       // ALUout is pos
       if(cond == 5 | cond == 1 | cond == 4) begin
         skip = 1;

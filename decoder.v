@@ -31,13 +31,13 @@ input [15:0] instr;
 
 output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK;
 output [1:0] MDRS, OP0S, OP1S;
-output [12:0] IRimm;
+output [15:0] IRimm;
 output [2:0] REGWS, REGR0S, REGR1S, ALUfunc, cond;
 output [3:0] state;
 
 
 
-reg [12:0] IRimm;
+reg [15:0] IRimm;
 
 
 // internal registers
@@ -53,15 +53,25 @@ initial begin
   state = 0;
 end
 
-assign next_state = fsm_function(state);
+assign next_state = fsm_function(state, skipstate);
 
 function [3:0] fsm_function;
 	input [3:0] state;
+  input [2:0] skipstate;
 	case(state)
 		FETCH: fsm_function = FETCHM;
 		FETCHM: fsm_function = DECODE;
 		DECODE: fsm_function = DECODEM;
-		DECODEM: fsm_function = READ;
+		DECODEM:
+      begin
+        if(skipstate == 0) begin
+          fsm_function = READ;
+        end else if(skipstate == 1) begin
+          fsm_function = EXEC;
+        end else if(skipstate == 2) begin
+          fsm_function = FETCH;
+        end
+      end
 		READ: fsm_function = READM;
 		READM: fsm_function = EXEC;
 		EXEC: fsm_function = EXECM;
@@ -110,7 +120,7 @@ assign opcodeshort = instr[14:13];
 wire [12:0] imm13;
 wire [9:0] imm10;
 wire [7:0] imm7;
-reg [4:0] immir;
+reg [15:0] immir;
 
 assign imm7 = instr[8:2];
 assign imm10 = instr[12:3];
@@ -128,8 +138,8 @@ assign tgt2 = instr[1:0];
 // Muxes
 wire [3:0] xregr0s, xregr1s, xregws, imms;
 reg [2:0] REGR0S, REGR1S, REGWS;
-wire [1:0] MDRS, condtype;
-reg incr_pc;
+wire [1:0] MDRS, condtype, skipstate;
+//reg incr_pc;
 wire [2:0] ALUfunc;
 reg [2:0] cond;
 
@@ -143,6 +153,7 @@ assign OP1S = ROMread[12:11];
 assign condtype = ROMread[10:9];
 assign COND_CHK = ROMread[8];
 assign ALUfunc = ROMread[7:5];
+assign skipstate = ROMread[4:3];
 
 // csigs - only on xxM cycles
 // mcycle have their lsb 0
@@ -163,7 +174,7 @@ and( BE, loadneg, ROMread[32]);
 
 always @* begin
   ROMaddr = 3; // HACK is a zero instruction for now!!!
-  incr_pc = 0;
+  //incr_pc = 0;
 
   if(codetype != 1) begin
     opcode = {4'b0, opcodeshort};
@@ -223,11 +234,12 @@ always @* begin
     7: immir = -1;
   endcase
 
+	// sign extension: { 16{a[15]}, a }
   case(imms)
-    IMM7: IRimm = imm7;
-    IMM10: IRimm = imm10;
-    IMM13: IRimm = imm13;
-    IMMIR: IRimm = immir;
+    IMM7: IRimm = { {9{imm7[6]}}, {imm7}} ;
+    IMM10: IRimm = { {6{imm10[9]}}, {imm10}} ;
+    IMM13: IRimm = { {3{imm10[12]}}, {imm13}} ;
+    IMMIR: IRimm = immir; // immir is already 16b
     default: IRimm = 0;
   endcase
 
@@ -236,8 +248,8 @@ always @* begin
     0: cond = 0;
     1: cond = 1;
     2: cond = tgt;
+    default: cond = 0;
   endcase
-
 
 end
 

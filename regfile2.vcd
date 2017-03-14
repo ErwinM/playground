@@ -1,0 +1,106 @@
+$date
+	Tue Mar 14 18:27:01 2017
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module decoder_tb $end
+$var reg 1 ! clk $end
+$var reg 1 " he $end
+$var reg 16 # regw [15:0] $end
+$var reg 3 $ regws [2:0] $end
+$var reg 1 % reset $end
+$var reg 1 & we $end
+$scope module U0 $end
+$var wire 1 ! clk $end
+$var wire 1 " he $end
+$var wire 1 ' incr_pc $end
+$var wire 3 ( regr0s [2:0] $end
+$var wire 3 ) regr1s [2:0] $end
+$var wire 16 * regw [15:0] $end
+$var wire 3 + regws [2:0] $end
+$var wire 1 , reset $end
+$var wire 1 & we $end
+$var reg 16 - R1 [15:0] $end
+$var reg 16 . R2 [15:0] $end
+$var reg 16 / R3 [15:0] $end
+$var reg 16 0 R4 [15:0] $end
+$var reg 16 1 R5 [15:0] $end
+$var reg 16 2 R6 [15:0] $end
+$var reg 16 3 R7 [15:0] $end
+$var reg 16 4 regr0 [15:0] $end
+$var reg 16 5 regr1 [15:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+bx 5
+b0 4
+b0 3
+b0 2
+b0 1
+b0 0
+b0 /
+b0 .
+b111111111 -
+z,
+b1 +
+b111111111 *
+bz )
+bz (
+z'
+1&
+x%
+b1 $
+b111111111 #
+x"
+0!
+$end
+#5
+1!
+#10
+0!
+#15
+1!
+#20
+b1111111111111111 -
+0!
+1"
+b1111111 #
+b1111111 *
+#25
+1!
+#30
+0!
+#35
+1!
+#40
+0!
+#45
+1!
+#50
+0!
+#55
+1!
+#60
+0!
+#65
+1!
+#70
+0!
+#75
+1!
+#80
+0!
+#85
+1!
+#90
+0!
+#95
+1!
+#100
+0!

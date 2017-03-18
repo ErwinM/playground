@@ -10,6 +10,7 @@ wire [15:0] CPUwrite, CPUread, CPUaddr, RAMwrite, RAMread, RAMaddr;
 wire CPUwe, RAMwe;
 wire [1:0] RAMbe;
 wire CPUbe;
+wire [7:0] uart_tx_byte;
 
 memory_io mem_io (
   .CPUwrite    (CPUwrite),
@@ -23,7 +24,17 @@ memory_io mem_io (
   //.RAMue,
   //.RAMle,
   .RAMbe       (RAMbe),
-  .RAMwe       (RAMwe)
+  .RAMwe       (RAMwe),
+  .uart_tx_byte (uart_tx_byte),
+  .uart_we			(uart_we)
+);
+
+
+
+uart_ctrl uart (
+	  .clk				(clock_50_b7a),
+	  .to_send			(uart_tx_byte),
+	  .we					(uart_we)
 );
 
 cpu cpu (

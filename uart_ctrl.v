@@ -1,30 +1,26 @@
 // uart controller
-// memory mapped
+// memory mapped by mem_io to 0xffff
 //
-// 0x00 tx_byte [7:0]
-// 0x01 transmit
-// 0x10 rx_byte [7:0]
-// 0x11 received
-// 0x20 is_transmitting
-// 0x21 is_receiving
-// 0x22 recv_error
+// initially we will have a single byte 'buffer' on each end
 
 module uart_ctrl(
   clk,
   rst,
-  addr,
-  data,
+  to_send,
   we,
+	rx,
+	tx
 );
 
-input [7:0] addr;
-input we, clk, rst;
-inout [7:0] data;
+input [7:0] to_send;
+input we, clk, rst, rx;
+output tx;
 
 // internal registers
-reg [7:0] tx_byte, buffer;
-reg transmit;
+//reg [7:0] tx_byte, buffer;
+reg transmit, tx_toggle;
 
+reg [7:0] tx_byte;
 wire [7:0] rx_byte;
 
 uart uart0 (
@@ -33,7 +29,7 @@ uart uart0 (
     .rx  (rx),              // Incoming serial line
     .tx  (tx),              // Outgoing serial line
     .transmit (transmit),   // Signal to transmit
-    .tx_byte  (tx_byte),    // Byte to transmit
+    .tx_byte  (to_send),    // Byte to transmit
     .received (received),   // Indicated that a byte has been received.
     .rx_byte  (rx_byte),    // Byte received
     .is_receiving (is_receiving), // Low when receive line is idle.
@@ -41,26 +37,28 @@ uart uart0 (
     .recv_error (recv_error)
 );
 
-assign data =  we ? buffer : 'bz;
+initial begin
+  tx_toggle = 0;
+end
+
+always @(posedge clk) begin
+
+	if (we && tx_toggle == 0)
+	begin
+		tx_toggle = 1;
+		tx_byte = to_send;
+	end
+	if (transmit == 1)
+		tx_toggle = 0;
+end
 
 always @(negedge clk) begin
-
-  if(we == 1) begin
-    case(addr)
-      7'h00: tx_byte <= data;
-      7'h01: transmit <= data;
-    endcase
-  end else begin
-    case(addr)
-      7'h00: buffer <= tx_byte;
-      7'h01: buffer <= transmit;
-      7'h10: buffer <= rx_byte;
-      7'h11: buffer <= received;
-      7'h20: buffer <= is_transmitting;
-      7'h21: buffer <= is_receiving;
-      7'h22: buffer <= recv_error;
-    endcase
-  end
+	if (tx_toggle == 1)
+	begin
+		transmit = 1;
+	end else begin
+		transmit = 0;
+	end
 end
 
 endmodule

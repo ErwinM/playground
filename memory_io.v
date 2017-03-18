@@ -13,7 +13,9 @@ module memory_io(
  //RAMue,
  //RAMle,
  RAMbe,
- RAMwe
+ RAMwe,
+ uart_tx_byte,
+ uart_we
 );
 
 input [15:0] CPUwrite, RAMread, CPUaddr;
@@ -21,14 +23,17 @@ input CPUwe;
 input CPUbe;
 
 output [15:0] CPUread, RAMwrite, RAMaddr;
-output RAMwe;
+output RAMwe, uart_we;
 output [1:0] RAMbe;
+output [7:0] uart_tx_byte;
 
 // internal thingies
 wire [15:0] addr;
 reg [15:0] data, wdata;
 //reg ue,le;
 reg [1:0] be;
+reg [7:0] uart_tx_byte;
+reg uart_we;
 
 // shift addr right one bit
 assign addr[0] = CPUaddr[1];
@@ -140,6 +145,16 @@ always @* begin
     data[14] = 0;
     data[15] = 0;
   end
+
+	if(CPUaddr == 16'h0ff0) // writing to uart tx
+	begin
+		uart_tx_byte = CPUwrite[7:0];
+		uart_we = CPUwe;
+	end else begin
+		uart_tx_byte = 0;
+		uart_we = 0;
+	end
+
 end
 
 endmodule

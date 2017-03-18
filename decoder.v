@@ -219,7 +219,7 @@ always @* begin
     ARG0: REGWS = arg0;
     ARG1: REGWS = arg1;
     TGT: REGWS = tgt;
-    TGT2: REGWS = tgt2 + 1;
+    TGT2: REGWS = tgt2 + 1; // alternative encoding (can't assign to r0)
     default: REGWS = xregws[2:0];
   endcase
 
@@ -239,7 +239,7 @@ always @* begin
   case(imms)
     IMM7: IRimm = { {9{imm7[6]}}, {imm7}} ;
     IMM10: IRimm = { {6{imm10[9]}}, {imm10}} ;
-    IMM13: IRimm = { {3{imm10[12]}}, {imm13}} ;
+    IMM13: IRimm = { {3{imm13[12]}}, {imm13}} ;
     IMMIR: IRimm = immir; // immir is already 16b
 		IMM7U: IRimm = { {9'b000000000}, {imm7} };
     default: IRimm = 0;

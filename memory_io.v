@@ -1,74 +1,95 @@
-// Memory I/O
+// Memory I/O & bus controller
 
 module memory_io(
-
- CPUwrite,
  CPUread,
+ CPUwrite,
  CPUaddr,
- CPUbe,
- CPUwe,
- RAMwrite,
+ be,
+ we,
  RAMread,
+ RAMwrite,
  RAMaddr,
- //RAMue,
- //RAMle,
  RAMbe,
  RAMwe,
- uart_tx_byte,
- uart_we
+ UARTread,
+ UARTwrite,
+ UARTaddr,
+ UARTwe
 );
 
-input [15:0] CPUwrite, RAMread, CPUaddr;
-input CPUwe;
-input CPUbe;
+input [15:0] CPUwrite, RAMread;
+output [15:0] CPUread, RAMwrite;
 
-output [15:0] CPUread, RAMwrite, RAMaddr;
-output RAMwe, uart_we;
+input [7:0] UARTread;
+output [7:0] UARTwrite;
+
+input [15:0] CPUaddr;
+output [15:0] RAMaddr;
+output [2:0] UARTaddr;
+
+input we, be;
+output RAMwe, UARTwe;
 output [1:0] RAMbe;
-output [7:0] uart_tx_byte;
 
 // internal thingies
-wire [15:0] addr;
+wire [15:0] RAMaddr;
 reg [15:0] data, wdata;
-//reg ue,le;
-reg [1:0] be;
-reg [7:0] uart_tx_byte;
-reg uart_we;
+reg RAMwe, UARTwe;
 
-// shift addr right one bit
-assign addr[0] = CPUaddr[1];
-assign addr[1] = CPUaddr[2];
-assign addr[2] = CPUaddr[3];
-assign addr[3] = CPUaddr[4];
-assign addr[4] = CPUaddr[5];
-assign addr[5] = CPUaddr[6];
-assign addr[6] = CPUaddr[7];
-assign addr[7] = CPUaddr[8];
-assign addr[8] = CPUaddr[9];
-assign addr[9] = CPUaddr[10];
-assign addr[10] = CPUaddr[11];
-assign addr[11] = CPUaddr[12];
-assign addr[12] = CPUaddr[13];
-assign addr[13] = CPUaddr[14];
-assign addr[14] = CPUaddr[15];
-assign addr[15] = 0;
+reg [1:0] RAMbe;
 
-assign RAMaddr = addr;
+parameter UARTbase = 16'h0ff0;
+
+
+assign CPUread = (CPUaddr < UARTbase) ? data : UARTread;
 assign RAMwrite = wdata;
-assign CPUread = data;
-assign RAMwe = CPUwe;
-assign RAMbe = be;
-//assign RAMue = ue;
-//assign RAMle = le;
+assign UARTwrite = CPUwrite[7:0];
+
+
+// shift addr right one bit to translate from byte address to word address (RAM is in words)
+assign RAMaddr[0] = CPUaddr[1];
+assign RAMaddr[1] = CPUaddr[2];
+assign RAMaddr[2] = CPUaddr[3];
+assign RAMaddr[3] = CPUaddr[4];
+assign RAMaddr[4] = CPUaddr[5];
+assign RAMaddr[5] = CPUaddr[6];
+assign RAMaddr[6] = CPUaddr[7];
+assign RAMaddr[7] = CPUaddr[8];
+assign RAMaddr[8] = CPUaddr[9];
+assign RAMaddr[9] = CPUaddr[10];
+assign RAMaddr[10] = CPUaddr[11];
+assign RAMaddr[11] = CPUaddr[12];
+assign RAMaddr[12] = CPUaddr[13];
+assign RAMaddr[13] = CPUaddr[14];
+assign RAMaddr[14] = CPUaddr[15];
+assign RAMaddr[15] = 0;
+
+
+// For now we only have 8 dev addr which get translated straight to the 16450
+assign UARTaddr[0] = CPUaddr[0];
+assign UARTaddr[1] = CPUaddr[1];
+assign UARTaddr[2] = CPUaddr[2];
+
 
 
 
 always @* begin
-  wdata = CPUwrite;
-  be = 2'b11;
+  // write wires are always live
+	// switching is on we
+	RAMwe = 0;
+	UARTwe = 0;
+	if (we && CPUaddr < UARTbase) begin
+		RAMwe = 1;
+	end
+	else if (we && CPUaddr >= UARTbase) begin
+		UARTwe = 1;
+	end
+
+	wdata = CPUwrite;
+  RAMbe = 2'b11;
   data = RAMread;
-  if(CPUwe == 1) begin
-    if(CPUbe == 1) begin
+  if(we == 1) begin
+    if(be == 1) begin
       if(CPUaddr[0] == 1) begin
         // address is odd - we need to write to the low byte
         wdata[0] = CPUwrite[0];
@@ -89,7 +110,7 @@ always @* begin
         wdata[15] = 0;
         //ue = 0;
         //le = 1;
-        be = 2'b01;
+        RAMbe = 2'b01;
       end else begin
         wdata[0] = 0;
         wdata[1] = 0;
@@ -109,13 +130,12 @@ always @* begin
         wdata[15] = CPUwrite[7];
         //ue = 1;
         //le = 0;
-        be = 2'b10;
+        RAMbe = 2'b10;
       end
     end
   end
 
-
-  if(CPUbe == 1) begin
+  if(be == 1) begin
     if(CPUaddr[0] == 1) begin
       // address is odd - we need to read the low byte
       data[0] = RAMread[0];
@@ -145,15 +165,6 @@ always @* begin
     data[14] = 0;
     data[15] = 0;
   end
-
-	if(CPUaddr == 16'h0ff0) // writing to uart tx
-	begin
-		uart_tx_byte = CPUwrite[7:0];
-		uart_we = CPUwe;
-	end else begin
-		uart_tx_byte = 0;
-		uart_we = 0;
-	end
 
 end
 

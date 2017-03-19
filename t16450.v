@@ -23,29 +23,29 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-module T16450
+module t16450
   (
    input reset_n,
-   input clk,
+   input clk,  // clock
    input rclk,
-   input cs_xn,
-   input rd_n,
-   input wr_n,
+   input cs_n,  // chip select
+   input rd_n,  // read enable
+   input wr_n,  // write enable
    input [2:0] addr,
    input [7:0] wr_data,
    output reg [7:0] rd_data,
-   input sin,
-   input cts_n,
-   input dsr_n,
-   input ri_n,
-   input dcd_n,
-   output reg sout,
-   output reg rts_n,
-   output reg dtr_n,
-   output reg out1_n,
-   output reg out2_n,
+   input sin,   // rx serial line
+   input cts_n, // modem clear to send
+   input dsr_n, // data set ready
+   input ri_n,  // ring?
+   input dcd_n, // data carrier detect
+   output reg sout,   // tx serial line
+   output reg rts_n,  // request to send
+   output reg dtr_n,  // data terminal ready
+   output reg out1_n,  // custom out
+   output reg out2_n,  // custom out
    output reg baudout,
-   output reg intr
+   output reg intr // interrupt
    );
 
   reg [7:0] RBR;        // Reciever Buffer Register
@@ -154,7 +154,7 @@ module T16450
                 default : ;
               endcase
             end
-          if (!rd_n && !cs_n && (addr == 3'b110))
+          if (!rd_n && !cs_n && (addr == 3'b110)) // addr = 6 = Modem status reg
             MSR[3:0] <= #1 4'b0000;
           if (MSR[4] != MSR_In[0])
             MSR[0] <= #1 1'b1;

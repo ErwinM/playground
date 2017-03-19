@@ -6,13 +6,14 @@ module cpu (
   we,
   RAMaddr,
   be,
+	hlt,
   clk
 );
 
 // i/o
 input clk, reset;
 input [15:0] RAMout;
-output we, be;
+output we, be, hlt;
 output [15:0] RAMin, RAMaddr;
 
 wire [1:0] op0s, op1s, mdrs;
@@ -44,6 +45,7 @@ decoder decoder (
   .cond       (cond),
   .state      (state),
   .reset      (reset),
+	.HLT				(hlt),
   .clk        (clk)
 );
 

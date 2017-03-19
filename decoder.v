@@ -23,13 +23,14 @@ module decoder (
   cond,
   state,
   reset,
+	HLT,
   clk
 );
 
 input clk, reset;
 input [15:0] instr;
 
-output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK;
+output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT;
 output [1:0] MDRS, OP0S, OP1S;
 output [15:0] IRimm;
 output [2:0] REGWS, REGR0S, REGR1S, ALUfunc, cond;
@@ -95,11 +96,18 @@ rom micro (
 //reg lmdr, lir, lram;
 wire xir_load, xmdr_load, xram_load;
 
+reg HLT;
+
 always @(negedge clk)
 begin
   if(reset == 1) begin
     state = 0;
-  end else begin
+		HLT = 0;
+  end
+	else if (instr == 16'hfe00) begin
+		state = 0;
+		HLT = 1;
+	end else begin
 	  state <= #1 next_state;
   end
 end

@@ -11,7 +11,7 @@ module ram(
 
 
     initial begin
-      $readmemh("bios.hex", memory,0,32);
+      $readmemh("bios.hex", memory,0,128);
     end
 
     assign data_out = temp;

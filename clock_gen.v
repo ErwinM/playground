@@ -1,33 +1,18 @@
 module clock_gen(
-  clk_in,
-  manual_in,
-  manual_sel,
-  speed_sel,
-  clk_out
-);
+manual, slow_clock, select, clk_out);
 
-input clk_in, manual_in, manual_sel, speed_sel;
+input manual, slow_clock, select;
 output clk_out;
 
-// we have a 50mhz clock in.
-// Slow clock divides that clock by 32 to get a ~1,5mhz clock (1.562.500)
-reg [5:0] counter;
-reg clk_out;
+wire manual, slow_clock;
+wire select, not_select;
+wire source1, source2;
 
-always @* begin
-	if (manual_sel) begin
-		clk_out = manual_in;
-	end else begin
-		if (speed_sel) begin
-			clk_out = counter[5];
-		end else begin
-			clk_out = clk_in;
-		end
-	end
-end
+not n1( not_select, select );
 
-always @(posedge clk_in) begin
-	counter = counter + 1;
-end
+and a1 (source1, manual, not_select);
+and a2 (source2, slow_clock, select);
+
+or o1(clk_out, source1, source2);
 
 endmodule

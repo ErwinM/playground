@@ -1,4 +1,4 @@
-//`timescale 1ns / 1ps
+`timescale 1ns / 1ps
 // Documented Verilog UART
 // Copyright (C) 2010 Timothy Goddard (tim@goddard.net.nz)
 // Distributed under the MIT licence.
@@ -33,10 +33,10 @@ module uart(
     output is_receiving, // Low when receive line is idle.
     output is_transmitting, // Low when transmit line is idle.
     output recv_error, // Indicates error in receiving packet.
-	 output [1:0] state // debugging
+	  output [1:0] state // debugging
     );
 
-parameter CLOCK_DIVIDE = 40;//1302; // clock rate (50Mhz) / (baud rate (9600) * 4)
+parameter CLOCK_DIVIDE = 1302; // clock rate (50Mhz) / (baud rate (9600) * 4)
 
 // States for the receiving state machine.
 // These are just constants, not parameters to override.

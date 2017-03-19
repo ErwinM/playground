@@ -1,0 +1,191 @@
+$date
+	Sat Mar 18 16:34:12 2017
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module clock_gen_tb $end
+$var wire 1 ! out $end
+$var reg 1 " clk $end
+$var reg 1 # manual $end
+$var reg 1 $ reset $end
+$var reg 1 % sel $end
+$var reg 1 & slow $end
+$scope module U0 $end
+$var wire 1 ! clk_out $end
+$var wire 1 # manual $end
+$var wire 1 ' not_select $end
+$var wire 1 % select $end
+$var wire 1 & slow_clock $end
+$var wire 1 ( source1 $end
+$var wire 1 ) source2 $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+0)
+x(
+1'
+0&
+0%
+x$
+x#
+0"
+x!
+$end
+#5
+1"
+#10
+0"
+#15
+1"
+#20
+0"
+#25
+1"
+1&
+#30
+0"
+#35
+1"
+#40
+0"
+#45
+1"
+#50
+1!
+1(
+0"
+0&
+1#
+#55
+1"
+#60
+0"
+#65
+0!
+0(
+1"
+0#
+#70
+0"
+#75
+1"
+1&
+#80
+1!
+1(
+0"
+1#
+#85
+1"
+#90
+0"
+#95
+0!
+0(
+1"
+0#
+#100
+0"
+0&
+#105
+1"
+#110
+1!
+1(
+0"
+1#
+#115
+1"
+#120
+0"
+#125
+0!
+0(
+1"
+0#
+1&
+#130
+0"
+#135
+1"
+#140
+1!
+1(
+0"
+1#
+#145
+1"
+#150
+0"
+0&
+#155
+0!
+0(
+1"
+0#
+#160
+0"
+#165
+1"
+#170
+1!
+1(
+0"
+1#
+#175
+1"
+1&
+#180
+0"
+#185
+0!
+0(
+1"
+0#
+#190
+0"
+#195
+1"
+#200
+1!
+1(
+0"
+1#
+0&
+#205
+1"
+#210
+0"
+#215
+0!
+0(
+1"
+0#
+#220
+0"
+#225
+1"
+1&
+#230
+1!
+1(
+0"
+1#
+#235
+1"
+#240
+0"
+#245
+0!
+0(
+1"
+0#
+#250
+0"
+0&

@@ -62,6 +62,12 @@ begin
 	if (reset && we) begin
 		R7 <= 0;
 	end else if (reset) begin
+		R1 <= 0;
+		R2 <= 0;
+		R3 <= 0;
+		R4 <= 0;
+		R5 <= 0;
+		R6 <= 0;
 		R7 <= 0;
 	end else if (we) begin
 		if (he) begin

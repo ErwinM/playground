@@ -3,71 +3,24 @@ module clock_gen_tb;
 
 reg manual, sel, slow;
 
-clock_gen U0 (
-  .manual		(manual),
-	.slow_clock	(slow),
-	.select			(sel),
-	.clk_out		(out)
+clock_generator U0 (
+  .clk	(clk),
+	.manual_clk		(manual),
+	.clk_select			(sel)
 );
 
   initial begin
     clk = 0;
-		slow = 0;
 		sel = 0;
-		#50
-		manual = 1;
-		#15
 		manual = 0;
-		#15
-		manual = 1;
-		#15
-		manual = 0;
-		#15
-		manual = 1;
-		#15
-		manual = 0;
-		#15
-		manual = 1;
-		#15
-		manual = 0;
-		#15
-		manual = 1;
-		#15
-		manual = 0;
-		#15
-		manual = 1;
-		#15
-		manual = 0;
-		#15
-		manual = 1;
-		#15
-		manual = 0;
-		#15
-		manual = 1;
-		#15
-		manual = 0;
-		#15
-		manual = 1;
-		#15
-		manual = 0;
-		#15
-		manual = 1;
-		#15
-		manual = 0;
-		#15
-		manual = 1;
-		#15
-		manual = 0;
-
   end
 
   always
     #5 clk = !clk;
 
-	always
-		#25 slow = !slow;
+
   initial  begin
-    $dumpfile ("clok_gen.vcd");
+    $dumpfile ("clk_gen.vcd");
     $dumpvars;
   end
 
@@ -77,7 +30,7 @@ clock_gen U0 (
   end
 
   initial
-  #250 $finish;
+  #5000 $finish;
 
   //Rest of testbench code after this line
 

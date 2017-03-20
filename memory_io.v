@@ -14,7 +14,9 @@ module memory_io(
  UARTread,
  UARTwrite,
  UARTaddr,
- UARTwe
+ UARTwe,
+ UARTre,
+ UARTce
 );
 
 input [15:0] CPUwrite, RAMread;
@@ -28,13 +30,13 @@ output [15:0] RAMaddr;
 output [2:0] UARTaddr;
 
 input we, be;
-output RAMwe, UARTwe;
+output RAMwe, UARTwe, UARTre, UARTce;
 output [1:0] RAMbe;
 
 // internal thingies
 wire [15:0] RAMaddr;
 reg [15:0] data, wdata;
-reg RAMwe, UARTwe;
+reg RAMwe, UARTwe, UARTce;
 
 reg [1:0] RAMbe;
 
@@ -43,8 +45,9 @@ parameter UARTbase = 16'h0ff0;
 
 assign CPUread = (CPUaddr < UARTbase) ? data : UARTread;
 assign RAMwrite = wdata;
-assign UARTwrite = CPUwrite[7:0];
 
+assign UARTwrite = CPUwrite[7:0];
+assign UARTre = !UARTwe;
 
 // shift addr right one bit to translate from byte address to word address (RAM is in words)
 assign RAMaddr[0] = CPUaddr[1];
@@ -75,9 +78,9 @@ assign UARTaddr[2] = CPUaddr[2];
 
 always @* begin
   // write wires are always live
-	// switching is on we
 	RAMwe = 0;
 	UARTwe = 0;
+	UARTce = 0;
 	if (we && CPUaddr < UARTbase) begin
 		RAMwe = 1;
 	end

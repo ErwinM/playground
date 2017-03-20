@@ -1,10 +1,11 @@
 // Computer
 
 module computer (
-  clock_50_b7a
+  clock_50_b7a,
+	reset
 );
 
-input clock_50_b7a;
+input clock_50_b7a, reset;
 
 wire [15:0] CPUwrite, CPUread, CPUaddr, RAMaddr, RAMread, RAMwrite;
 wire [7:0] UARTread, UARTwrite;
@@ -26,7 +27,9 @@ memory_io mem_io (
   .UARTread  	 (UARTread),
   .UARTwrite   (UARTwrite),
   .UARTaddr    (UARTaddr),
-  .UARTwe			 (UARTwe)
+  .UARTwe			 (UARTwe),
+	.UARTre			 (UARTre),
+	.UARTce			 (UARTce)
 );
 
 
@@ -47,6 +50,23 @@ ram ram (
   .be       (RAMbe),
   .clk      (clock_50_b7a)
 );
+
+wire not_reset;
+not(not_reset,reset);
+
+t16450 uart (
+   .clk			(clock_50_b7a),  // clock
+	 .rclk		(1'b1),
+	 .reset_n	(not_reset),
+   .cs_n		(UARTce),  // chip select
+   .rd_n  	(UARTre),// read enable
+   .wr_n		(UARTwe),  // write enable
+   .addr		(UARTaddr),
+   .wr_data	(UARTwrite),
+   .rd_data	(UARTread),
+   .sout		(uart_tx)
+);
+
 
 
 endmodule

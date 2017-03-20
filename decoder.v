@@ -211,7 +211,7 @@ always @* begin
     ARG0: REGR0S = arg0;
     ARG1: REGR0S = arg1;
     TGT: REGR0S = tgt;
-    TGT2: REGR0S = tgt2;
+    TGT2: REGR0S = tgt2 + 1; // alternative encoding (can't assign to r0)
     default: REGR0S = xregr0s[2:0];
   endcase
 
@@ -219,7 +219,7 @@ always @* begin
     ARG0: REGR1S = arg0;
     ARG1: REGR1S = arg1;
     TGT: REGR1S = tgt;
-    TGT2: REGR1S = tgt2;
+    TGT2: REGR1S = tgt2 + 1; // alternative encoding (can't assign to r0)
     default: REGR1S = xregr1s[2:0];
   endcase
 

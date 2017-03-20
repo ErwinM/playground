@@ -6,6 +6,7 @@ module t16450_tb;
 	reg rd_n, wr_n, cs_n, rclk;
 
 	wire [7:0] rd_data;
+	wire loop;
 
 t16450 U0 (
   .clk   (clk),
@@ -16,7 +17,8 @@ t16450 U0 (
 	.rd_data (rd_data),
 	.rd_n (rd_n),
 	.wr_n (wr_n),
-	.cs_n (cs_n)
+	.cs_n (cs_n),
+	.baudout (loop)
 );
 
    // input reset_n,
@@ -44,14 +46,14 @@ t16450 U0 (
 		reset = 1;
 		#10
 		wr_n = 0;
-		addr = 3'h0;
+		addr = 3'h1;
 		wr_data = 0;
 		#10
 		addr = 3'h3;
 		wr_data = 8'h80;
 		#10
 		addr = 3'h0;
-		wr_data = 8'h20;
+		wr_data = 8'h01;
 		#10
 		addr = 3'h1;
 		wr_data = 8'h0;
@@ -84,7 +86,7 @@ t16450 U0 (
   end
 
   initial
-  #2000 $finish;
+  #50000 $finish;
 
   //Rest of testbench code after this line
 

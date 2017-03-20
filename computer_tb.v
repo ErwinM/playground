@@ -2,12 +2,15 @@ module computer_tb;
   reg clk, reset;
 
 computer U0 (
-  .clock_50_b7a   (clk)
+  .clock_50_b7a   (clk),
+	.reset					(reset)
   );
 
   initial begin
     clk = 0;
-    reset = 0;
+    reset = 1;
+		#10
+		reset = 0;
   end
 
   integer idx;
@@ -37,7 +40,7 @@ computer U0 (
   end
 
   initial
-  #3000 $finish;
+  #10000 $finish;
 
   //Rest of testbench code after this line
 

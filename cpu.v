@@ -4,6 +4,7 @@ module cpu (
   RAMin,
   RAMout,
   we,
+	re,
   RAMaddr,
   be,
 	hlt,
@@ -13,7 +14,7 @@ module cpu (
 // i/o
 input clk, reset;
 input [15:0] RAMout;
-output we, be, hlt;
+output we, be, hlt, re;
 output [15:0] RAMin, RAMaddr;
 
 wire [1:0] op0s, op1s, mdrs;
@@ -33,6 +34,7 @@ decoder decoder (
   .IR_LOAD    (ir_load),
   .INCR_PC    (incr_pc),
   .BE			    (be),
+	.RE					(re),
   .OP0S       (op0s),
   .OP1S       (op1s),
   .IRimm      (IRimm),

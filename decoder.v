@@ -10,6 +10,7 @@ module decoder (
   RAM_LOAD,
   INCR_PC,
   BE,
+	RE,
   REGR0S,
   REGR1S,
   REGWS,
@@ -30,7 +31,7 @@ module decoder (
 input clk, reset;
 input [15:0] instr;
 
-output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT;
+output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE;
 output [1:0] MDRS, OP0S, OP1S;
 output [15:0] IRimm;
 output [2:0] REGWS, REGR0S, REGR1S, ALUfunc, cond;
@@ -181,6 +182,8 @@ and( INCR_PC, loadneg, ROMread[34]); //= incr_pc;
 //assign SKIP = ROMread[25];
 and( BE, loadneg, ROMread[32]);
 
+reg RE;
+
 always @* begin
   ROMaddr = 3; // HACK is a zero instruction for now!!!
   //incr_pc = 0;
@@ -190,6 +193,14 @@ always @* begin
   end else begin
     opcode = opcodelong;
   end
+
+	// logic to generate a read_enable signal for the uart
+	// only opcodes (ldb) 6 and (ldbb) 24
+	RE = 1'b0;
+	if(opcode == 6'b000110 || opcode == 6'b011000) begin
+		if(REG_LOAD)
+			RE = 1'b1;
+	end
 
   case(state)
     FETCH:

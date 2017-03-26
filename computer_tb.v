@@ -1,16 +1,34 @@
 module computer_tb;
-  reg clk, reset;
+  reg clk, reset, uart_rx;
 
 computer U0 (
   .clock_50_b7a   (clk),
-	.reset					(reset)
+	.reset					(reset),
+	.uart_rx				(uart_rx)
   );
 
   initial begin
     clk = 0;
     reset = 1;
+		uart_rx = 1;
 		#10
 		reset = 0;
+		#750
+		uart_rx = 0;
+		#160
+		uart_rx =1;
+		#160
+		uart_rx =0;
+		#160
+		uart_rx =1;
+		#160
+		uart_rx =0;
+		#320
+		uart_rx =1;
+		#320;
+		uart_rx = 0;
+		#160
+		uart_rx =1;
   end
 
   integer idx;
@@ -31,6 +49,9 @@ computer U0 (
     $dumpvars(0,computer_tb.U0.ram.memory[6]);
     $dumpvars(0,computer_tb.U0.ram.memory[7]);
     $dumpvars(0,computer_tb.U0.ram.memory[8]);
+    $dumpvars(0,computer_tb.U0.ram.memory[32]);
+    $dumpvars(0,computer_tb.U0.ram.memory[34]);
+    $dumpvars(0,computer_tb.U0.ram.memory[36]);
 
   end
 

@@ -9,7 +9,6 @@ regr0s,
 regr1s,
 regws,
 we,
-he,
 incr_pc,
 reset,
 clk
@@ -17,7 +16,7 @@ clk
 
 input [15:0] regw;
 input [2:0] regr0s, regr1s, regws;
-input we, he, clk, incr_pc, reset;
+input we, clk, incr_pc, reset;
 output [15:0] regr0, regr1;
 
 reg [15:0] regr0, regr1;
@@ -70,28 +69,16 @@ begin
 		R6 <= 0;
 		R7 <= 0;
 	end else if (we) begin
-		if (he) begin
-      case(regws)
-  		3'b001: R1[15:9] <= regw[6:0];
-  		3'b010: R2[15:9] <= regw[6:0];
-  		3'b011: R3[15:9] <= regw[6:0];
-  		3'b100: R4[15:9] <= regw[6:0];
-  		3'b101: R5[15:9] <= regw[6:0];
-  		3'b110: R6[15:9] <= regw[6:0];
-  		3'b111: R7[15:9] <= regw[6:0];
-      endcase
-    end else begin
-      case(regws)
-  		3'b001: R1 <= regw;
-  		3'b010: R2 <= regw;
-  		3'b011: R3 <= regw;
-  		3'b100: R4 <= regw;
-  		3'b101: R5 <= regw;
-  		3'b110: R6 <= regw;
-  		3'b111: R7 <= regw;
-	    endcase
-    end
-	end
+    case(regws)
+		3'b001: R1 <= regw;
+		3'b010: R2 <= regw;
+		3'b011: R3 <= regw;
+		3'b100: R4 <= regw;
+		3'b101: R5 <= regw;
+		3'b110: R6 <= regw;
+		3'b111: R7 <= regw;
+    endcase
+  end
 
 	if (incr_pc) begin
     R7 <= R7 + 2;

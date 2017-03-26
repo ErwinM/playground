@@ -16,6 +16,7 @@ module alu(
     case(f)
       3'b000: out = x + y;
       3'b001: out = x - y;
+			3'b110: out = (x << 9) | (y & 16'h1ff);
       default: out = x + y;
     endcase
   end

@@ -98,7 +98,6 @@ regfile2 regfile (
   .regr1s (regr1s),
   .regws  (regws),
   .we     (reg_load),
-	.he			(be),
   .incr_pc  (incr_pc_out),
   .reset		(reset),
   .clk    (clk)

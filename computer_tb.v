@@ -11,27 +11,8 @@ computer U0 (
     clk = 0;
     reset = 1;
 		uart_rx = 1;
-		#10
-		reset = 0;
-		#750
-		uart_rx = 0;
-		#160
-		uart_rx =1;
-		#160
-		uart_rx =0;
-		#160
-		uart_rx =1;
-		#160
-		uart_rx =0;
-		#320
-		uart_rx =1;
-		#320;
-		uart_rx = 0;
-		#160
-		uart_rx =1;
-  end
 
-  integer idx;
+  end
 
   always
     #5 clk = !clk;
@@ -64,5 +45,24 @@ computer U0 (
   #10000 $finish;
 
   //Rest of testbench code after this line
+		//
+	// reset = 0;
+	// #750
+	// uart_rx = 0;
+	// #160
+	// uart_rx =1;
+	// #160
+	// uart_rx =0;
+	// #160
+	// uart_rx =1;
+	// #160
+	// uart_rx =0;
+	// #320
+	// uart_rx =1;
+	// #320;
+	// uart_rx = 0;
+	// #160
+	// uart_rx =1;
+
 
 endmodule

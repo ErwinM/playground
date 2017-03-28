@@ -6,7 +6,7 @@ module ram(
     input we,
     input clk
 );
-    reg [15:0] memory [0:255]; // byte addressable
+    reg [15:0] memory [0:512]; // byte addressable
     reg [15:0] temp;
 
 

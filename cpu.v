@@ -23,7 +23,7 @@ wire [2:0]  regr0s, regr1s, regws, cond, ALUfunc;
 wire [15:0] IRout;
 wire [3:0] state;
 
-wire mdr_load, mar_load, reg_load, ram_load, ir_load, incr_pc, cond_chk;
+wire mdr_load, mar_load, reg_load, ram_load, ir_load, incr_pc, cond_chk, bank, intr;
 
 decoder decoder (
   .instr      (IRout),
@@ -48,9 +48,18 @@ decoder decoder (
   .state      (state),
   .reset      (reset),
 	.HLT				(hlt),
+	.BANK				(bank),
+	.irq_r			(intr),
   .clk        (clk)
 );
 
+wire [2:0] irq_nr;
+// irq_encoder
+irq_encoder irq_encoder (
+	.uart_irq		(uart_irq),
+	.irq_nr			(irq_nr),
+	.intr				(intr)
+);
 
 // SYSREGS
 // register(in, reset, load, clk, out)
@@ -83,26 +92,32 @@ register IR (
 
 // REGFILE
 
-wire [15:0] regr0, regr1, regw;
+wire [15:0] regr0, regr1, regw, cr_wr, cr_rd;
 reg skip;
 wire loadneg, incr_pc_temp, incr_pc_out;
+
+reg [15:0] sr1_wr;
 
 not(loadneg, state[0]);
 
 or(incr_pc_temp, skip, incr_pc);
 and(incr_pc_out, loadneg, incr_pc_temp);
 
-regfile2 regfile (
-  .regr0  (regr0),
-  .regr1  (regr1),
-  .regw   (regw),
-  .regr0s (regr0s),
-  .regr1s (regr1s),
-  .regws  (regws),
-  .we     (reg_load),
+regfile3 regfile (
+  .regr0  	(regr0),
+  .regr1  	(regr1),
+  .regw   	(regw),
+  .regr0s 	(regr0s),
+  .regr1s 	(regr1s),
+  .regws  	(regws),
+  .we     	(reg_load),
   .incr_pc  (incr_pc_out),
   .reset		(reset),
-  .clk    (clk)
+	.cr_wr		(cr_wr),
+	.cr_rd		(cr_rd),
+	.sr1_wr		(sr1_wr),
+	.bank			(bank),
+  .clk    	(clk)
 );
 
 // ALU
@@ -169,6 +184,14 @@ always @* begin
     end
     // TO DO: unsigned conditions
   end
+
+	// Interrupt and fault logic
+	// push irq_nr into sR1 on interrupt
+	if (intr == 1) begin
+		sr1_wr = { {13'b0000000000000}, {irq_nr} };
+	end else begin
+		sr1_wr = 0;
+	end
 
 end
 

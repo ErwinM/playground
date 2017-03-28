@@ -25,13 +25,16 @@ module decoder (
   state,
   reset,
 	HLT,
+	irq_r,
+	trap_r,
+	BANK,
   clk
 );
 
-input clk, reset;
+input clk, reset, irq_r, trap_r;
 input [15:0] instr;
 
-output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE;
+output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE, BANK;
 output [1:0] MDRS, OP0S, OP1S;
 output [15:0] IRimm;
 output [2:0] REGWS, REGR0S, REGR1S, ALUfunc, cond;
@@ -182,7 +185,7 @@ and( INCR_PC, loadneg, ROMread[34]); //= incr_pc;
 //assign SKIP = ROMread[25];
 and( BE, loadneg, ROMread[32]);
 
-reg RE;
+reg RE, BANK, int_bank;
 
 always @* begin
   ROMaddr = 3; // HACK is a zero instruction for now!!!
@@ -203,11 +206,7 @@ always @* begin
 	end
 
   case(state)
-    FETCH:
-      begin
-        ROMaddr = 2;
-        //incr_pc = 1;
-      end
+    FETCH: ROMaddr = 2;
     FETCHM: ROMaddr = 2;
     DECODE: ROMaddr = opcode;
     DECODEM: ROMaddr = opcode;
@@ -272,6 +271,16 @@ always @* begin
     default: cond = 0;
   endcase
 
+end
+
+always @(posedge clk) begin
+	if (state == FETCH && irq_r == 1) begin
+		int_bank = 1;
+	end else if (state == FETCH && irq_r == 0) begin
+		int_bank = 0;
+	end
+
+	BANK = int_bank;
 end
 
 

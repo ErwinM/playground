@@ -52,7 +52,7 @@ begin
 	3'b101: regr1 = R5;
 	3'b110: regr1 = R6;
 	3'b111: regr1 = R7;
-  default: regr0 = 0;
+  default: regr1 = 0;
 	endcase
 end
 

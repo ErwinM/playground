@@ -14,10 +14,10 @@ computer U0 (
     reset = 1;
 		#20
 		reset = 0;
-		#250
-		intr = 1;
-		#40
-		intr = 0;
+		#230
+		trap = 1;
+		#20
+		trap = 0;
 
 
 

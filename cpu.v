@@ -25,7 +25,7 @@ wire [2:0]  regr0s, regr1s, regws, cond, ALUfunc;
 wire [15:0] IRout;
 wire [3:0] state;
 
-wire mdr_load, mar_load_dec, reg_load, ram_load, ir_load, incr_pc, cond_chk, intr, trap_r, irq_r;
+wire mdr_load, mar_load_dec, reg_load, ram_load, ir_load, incr_pc, cond_chk, fault, irq;
 
 parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
 
@@ -52,7 +52,7 @@ decoder decoder (
   .state      (state),
   .reset      (reset),
 	.HLT				(hlt),
-	.trap_r			(trap),
+	.fault_r		(fault),
 	.irq_r			(irq),
   .clk        (clk)
 );
@@ -84,8 +84,8 @@ register_posedge MDR (
   .out    (MDRout)
 );
 
-reg mar_fault;
-or(mar_load, mar_load_decoder, mar_fault);
+reg mar_force;
+or(mar_load, mar_load_decoder, mar_force);
 
 register_posedge MAR (
   .in     (MARin),
@@ -201,7 +201,7 @@ always @* begin
 
 	// Interrupt and fault logic
 	// push trap_nr into sR1 on interrupt
-	if (intr == 1) begin
+	if (irq == 1 || fault == 1) begin
 		sr1_wr = { {13'b0000000000000}, {trapnr} };
 	end else begin
 		sr1_wr = 0;
@@ -213,13 +213,11 @@ end
 	//  0	Carry
 	// 	1	Mode - This one is actually static in the respective reg
 	// 	2	Paging
-	// 	3	irq enable
+	// 	3	irq enable ( I DO need this because software might want to disable!)
 	// 	4
 	// 	5
 	// 	6
-	// 	7
-	// 	8
-	// 	9
+	// 	7 reserved for forcing write
 
 always @(posedge clk) begin
 
@@ -243,11 +241,12 @@ always @(posedge clk) begin
 		cr_wr[3] = 0;
 	end
 
-	// if (trap == 1) begin
-// 		cr_wr[3] <= 1'b1;
-// 		mar_fault <= 1; // force MAR_LOAD
-// 		trap_r <= 1;
-// 	end
+	if (fault == 1) begin
+		//cr_wr[3] <= 1'b1;
+		bank <= 1'b1;
+		mar_force <= 1; // force MAR_LOAD
+		deassert_trap = 1;
+	end
 
 	// Control reg logic
 

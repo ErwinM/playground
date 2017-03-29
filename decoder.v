@@ -25,12 +25,12 @@ module decoder (
   state,
   reset,
 	HLT,
-	trap_r,
+	fault_r,
 	irq_r,
   clk
 );
 
-input clk, reset, trap_r, irq_r;
+input clk, reset, fault_r, irq_r;
 input [15:0] instr;
 
 output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE;
@@ -114,7 +114,7 @@ begin
 		state = 0;
 		HLT = 1;
 	end
-	else if (trap_r == 1) begin
+	else if (fault_r == 1) begin
 		state = 0;
 	end else begin
 	  state <= #1 next_state;

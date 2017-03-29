@@ -22,9 +22,9 @@ input [15:0] regw, cr_wr, sr1_wr;
 input [2:0] regr0s, regr1s, regws;
 input we, clk, incr_pc, reset, bank;
 output [15:0] regr0, regr1, cr_rd;
-reg [15:0] regr0, regr1;
+reg [15:0] regr0, regr1, cr_rd;
 
-parameter IVEC = 16'h4, CR_INIT = 16'h0;
+parameter IVEC = 16'h4, CR_INIT = 16'h8, sCR_INIT = 16'h2;
 
 reg [15:0] R1 = 0;
 reg [15:0] R2 = 0;
@@ -33,7 +33,7 @@ reg [15:0] R4 = 0;
 reg [15:0] R5 = 0;
 reg [15:0] R6 = 0;
 reg [15:0] R7 = 0;
-reg [15:0] CR = 0;
+reg [15:0] CR = 0; // irq enable
 
 reg [15:0] sR1 = 0;
 reg [15:0] sR2 = 0;
@@ -42,7 +42,7 @@ reg [15:0] sR4 = 0;
 reg [15:0] sR5 = 0;
 reg [15:0] sR6 = 0;
 reg [15:0] sR7 = IVEC;
-reg [15:0] sCR = 16'h4;
+reg [15:0] sCR = 0; // mode = system
 
 always @*
 begin
@@ -117,7 +117,8 @@ begin
 		sR5 <= 0;
 		sR6 <= 0;
 		sR7 <= IVEC;
-		sCR <= CR_INIT;
+		sCR <= sCR_INIT;
+		cr_rd <= CR;
 	end else if (we) begin
 		if (bank==0) begin
 	    case(regws)
@@ -142,10 +143,18 @@ begin
 		end
 	end
 
-	if (bank == 0)
-		CR <= cr_wr;
+	if (cr_wr > 0) begin
+		if (bank == 0) begin
+			CR <= cr_wr;
+		end else begin
+			sCR <= cr_wr;
+		end
+	end
+
+	if (bank == 1)
+		cr_rd <= sCR;
 	else
-		sCR <= cr_wr;
+		cr_rd <= CR;
 
 	if (bank == 0) begin
 		if (incr_pc)

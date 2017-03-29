@@ -1,16 +1,25 @@
 module computer_tb;
-  reg clk, reset, uart_rx;
+  reg clk, reset, uart_rx, intr, trap;
 
 computer U0 (
   .clock_50_b7a   (clk),
 	.reset					(reset),
-	.uart_rx				(uart_rx)
+	.uart_rx				(uart_rx),
+	.intr						(intr),
+	.trap						(trap)
   );
 
   initial begin
     clk = 0;
     reset = 1;
-		uart_rx = 1;
+		#20
+		reset = 0;
+		#250
+		intr = 1;
+		#40
+		intr = 0;
+
+
 
   end
 
@@ -42,7 +51,7 @@ computer U0 (
   end
 
   initial
-  #10000 $finish;
+  #5000 $finish;
 
   //Rest of testbench code after this line
 		//

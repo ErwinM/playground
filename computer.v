@@ -3,10 +3,12 @@
 module computer (
   clock_50_b7a,
 	reset,
-	uart_rx
+	uart_rx,
+	intr,
+	trap
 );
 
-input clock_50_b7a, reset, uart_rx;
+input clock_50_b7a, reset, uart_rx, intr, trap;
 
 wire [15:0] CPUwrite, CPUread, CPUaddr, RAMaddr, RAMread, RAMwrite;
 wire [7:0] UARTread, UARTwrite;
@@ -35,9 +37,12 @@ memory_io mem_io (
 
 
 cpu cpu (
+	.reset	(reset),
   .RAMin (CPUwrite),
   .RAMout (CPUread),
   .RAMaddr  (CPUaddr),
+	.UART_intr	(intr),
+	.page_fault (trap),
   .we (we),
 	.re	(re),
   .be (be),

@@ -8,11 +8,13 @@ module cpu (
   RAMaddr,
   be,
 	hlt,
+	UART_intr,
+	page_fault,
   clk
 );
 
 // i/o
-input clk, reset;
+input clk, reset, UART_intr, page_fault;
 input [15:0] RAMout;
 output we, be, hlt, re;
 output [15:0] RAMin, RAMaddr;
@@ -23,12 +25,14 @@ wire [2:0]  regr0s, regr1s, regws, cond, ALUfunc;
 wire [15:0] IRout;
 wire [3:0] state;
 
-wire mdr_load, mar_load, reg_load, ram_load, ir_load, incr_pc, cond_chk, bank, intr;
+wire mdr_load, mar_load_dec, reg_load, ram_load, ir_load, incr_pc, cond_chk, intr, trap_r, irq_r;
+
+parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
 
 decoder decoder (
   .instr      (IRout),
   .MDR_LOAD   (mdr_load),
-  .MAR_LOAD   (mar_load),
+  .MAR_LOAD   (mar_load_decoder),
   .REG_LOAD   (reg_load),
   .RAM_LOAD   (ram_load),
   .IR_LOAD    (ir_load),
@@ -48,17 +52,23 @@ decoder decoder (
   .state      (state),
   .reset      (reset),
 	.HLT				(hlt),
-	.BANK				(bank),
-	.irq_r			(intr),
+	.trap_r			(trap),
+	.irq_r			(irq),
   .clk        (clk)
 );
 
-wire [2:0] irq_nr;
+wire [3:0] trapnr;
+reg deassert_trap;
 // irq_encoder
 irq_encoder irq_encoder (
-	.uart_irq		(uart_irq),
-	.irq_nr			(irq_nr),
-	.intr				(intr)
+	.reset			(reset),
+	.uart_irq		(UART_intr),
+	.page_fault	(page_fault),
+	.trapnr			(trapnr),
+	.irq				(irq),
+	.fault			(fault),
+	.deassert		(deassert_trap),
+	.clk				(clk)
 );
 
 // SYSREGS
@@ -73,6 +83,9 @@ register_posedge MDR (
   .clk    (clk),
   .out    (MDRout)
 );
+
+reg mar_fault;
+or(mar_load, mar_load_decoder, mar_fault);
 
 register_posedge MAR (
   .in     (MARin),
@@ -92,8 +105,9 @@ register IR (
 
 // REGFILE
 
-wire [15:0] regr0, regr1, regw, cr_wr, cr_rd;
-reg skip;
+wire [15:0] regr0, regr1, regw, cr_rd;
+reg [15:0] cr_wr;
+reg skip, bank;
 wire loadneg, incr_pc_temp, incr_pc_out;
 
 reg [15:0] sr1_wr;
@@ -186,13 +200,57 @@ always @* begin
   end
 
 	// Interrupt and fault logic
-	// push irq_nr into sR1 on interrupt
+	// push trap_nr into sR1 on interrupt
 	if (intr == 1) begin
-		sr1_wr = { {13'b0000000000000}, {irq_nr} };
+		sr1_wr = { {13'b0000000000000}, {trapnr} };
 	end else begin
 		sr1_wr = 0;
 	end
 
 end
+
+always @(posedge clk) begin
+
+	// if I fix this assetion / disassertion logic it should work
+	// banking should depend on the priv level (linked to CR)
+	// lets move this to CPU (out of decoder)
+
+	// Control Reg
+	//  0	Carry
+	// 	1	Mode - This one is actually static in the respective reg
+	// 	2	Paging
+	// 	3	irq enable
+	// 	4
+	// 	5
+	// 	6
+	// 	7
+	// 	8
+	// 	9
+
+	// IRQ TRAPS
+	//mar_fault = 0;
+	//trap_r = 0;
+	if (reset == 1) begin
+		bank = 0;
+	end
+
+
+	deassert_trap = 0;
+
+
+	if (state == 0 && irq == 1) begin
+		bank <= 1'b1;
+		deassert_trap = 1;
+	end
+
+	// if (trap == 1) begin
+// 		cr_wr[3] <= 1'b1;
+// 		mar_fault <= 1; // force MAR_LOAD
+// 		trap_r <= 1;
+// 	end
+
+end
+
+
 
 endmodule

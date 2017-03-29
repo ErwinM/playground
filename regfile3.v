@@ -24,7 +24,7 @@ input we, clk, incr_pc, reset, bank;
 output [15:0] regr0, regr1, cr_rd;
 reg [15:0] regr0, regr1;
 
-parameter IVEC = 16'h2, CR_INIT = 16'h0;
+parameter IVEC = 16'h4, CR_INIT = 16'h0;
 
 reg [15:0] R1 = 0;
 reg [15:0] R2 = 0;
@@ -42,9 +42,7 @@ reg [15:0] sR4 = 0;
 reg [15:0] sR5 = 0;
 reg [15:0] sR6 = 0;
 reg [15:0] sR7 = IVEC;
-reg [15:0] sCR = CR_INIT;
-
-assign cr_rd = (bank == 1 ) ? CR : sCR;
+reg [15:0] sCR = 16'h4;
 
 always @*
 begin
@@ -119,7 +117,7 @@ begin
 		sR5 <= 0;
 		sR6 <= 0;
 		sR7 <= IVEC;
-		CR <= CR_INIT;
+		sCR <= CR_INIT;
 	end else if (we) begin
 		if (bank==0) begin
 	    case(regws)
@@ -149,9 +147,13 @@ begin
 	else
 		sCR <= cr_wr;
 
-	if (incr_pc) begin
-    R7 <= R7 + 2;
-  end
+	if (bank == 0) begin
+		if (incr_pc)
+	    R7 <= R7 + 2;
+	end else begin
+		if (incr_pc)
+			sR7 <= sR7 +2;
+	end
 
 	if (sr1_wr > 0)
 		sR1 <= sr1_wr;

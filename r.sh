@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 cp ~/code/dme_v3/micro/micro.list .
 cp ~/code/dme_v3/micro/micro.list ../PLAY
 

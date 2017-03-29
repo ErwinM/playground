@@ -25,16 +25,15 @@ module decoder (
   state,
   reset,
 	HLT,
-	irq_r,
 	trap_r,
-	BANK,
+	irq_r,
   clk
 );
 
-input clk, reset, irq_r, trap_r;
+input clk, reset, trap_r, irq_r;
 input [15:0] instr;
 
-output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE, BANK;
+output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE;
 output [1:0] MDRS, OP0S, OP1S;
 output [15:0] IRimm;
 output [2:0] REGWS, REGR0S, REGR1S, ALUfunc, cond;
@@ -53,10 +52,6 @@ wire [3:0] next_state;
 parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
 parameter ARG0 = 8, ARG1 = 9, TGT = 10, TGT2 = 11;
 parameter IMM7 = 0, IMM10 = 1, IMM13 = 2, IMMIR = 3, IMM7U = 4;
-
-initial begin
-  state = 0;
-end
 
 assign next_state = fsm_function(state, skipstate);
 
@@ -80,7 +75,14 @@ function [3:0] fsm_function;
 		READ: fsm_function = READM;
 		READM: fsm_function = EXEC;
 		EXEC: fsm_function = EXECM;
-		EXECM: fsm_function = FETCH;
+		EXECM:
+			begin
+					if (irq_r == 1) begin
+						fsm_function = 0;
+					end else begin
+						fsm_function = FETCH;
+					end
+			end
 		default: fsm_function = FETCH;
 	endcase
 endfunction
@@ -111,6 +113,9 @@ begin
 	else if (instr == 16'hfe00) begin
 		state = 0;
 		HLT = 1;
+	end
+	else if (trap_r == 1) begin
+		state = 0;
 	end else begin
 	  state <= #1 next_state;
   end
@@ -185,7 +190,9 @@ and( INCR_PC, loadneg, ROMread[34]); //= incr_pc;
 //assign SKIP = ROMread[25];
 and( BE, loadneg, ROMread[32]);
 
-reg RE, BANK, int_bank;
+
+
+reg RE;
 
 always @* begin
   ROMaddr = 3; // HACK is a zero instruction for now!!!
@@ -271,16 +278,6 @@ always @* begin
     default: cond = 0;
   endcase
 
-end
-
-always @(posedge clk) begin
-	if (state == FETCH && irq_r == 1) begin
-		int_bank = 1;
-	end else if (state == FETCH && irq_r == 0) begin
-		int_bank = 0;
-	end
-
-	BANK = int_bank;
 end
 
 

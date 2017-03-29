@@ -209,12 +209,6 @@ always @* begin
 
 end
 
-always @(posedge clk) begin
-
-	// if I fix this assetion / disassertion logic it should work
-	// banking should depend on the priv level (linked to CR)
-	// lets move this to CPU (out of decoder)
-
 	// Control Reg
 	//  0	Carry
 	// 	1	Mode - This one is actually static in the respective reg
@@ -227,6 +221,11 @@ always @(posedge clk) begin
 	// 	8
 	// 	9
 
+always @(posedge clk) begin
+
+	// start with original CR contents
+	cr_wr = cr_rd;
+
 	// IRQ TRAPS
 	//mar_fault = 0;
 	//trap_r = 0;
@@ -238,9 +237,10 @@ always @(posedge clk) begin
 	deassert_trap = 0;
 
 
-	if (state == 0 && irq == 1) begin
+	if (state == 0 && irq == 1 && cr_rd[3] == 1) begin
 		bank <= 1'b1;
 		deassert_trap = 1;
+		cr_wr[3] = 0;
 	end
 
 	// if (trap == 1) begin
@@ -248,6 +248,11 @@ always @(posedge clk) begin
 // 		mar_fault <= 1; // force MAR_LOAD
 // 		trap_r <= 1;
 // 	end
+
+	// Control reg logic
+
+	cr_wr[1] = bank;
+
 
 end
 

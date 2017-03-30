@@ -27,13 +27,15 @@ module decoder (
 	HLT,
 	fault_r,
 	irq_r,
+	SYSCALL,
+	RETI,
   clk
 );
 
 input clk, reset, fault_r, irq_r;
 input [15:0] instr;
 
-output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE;
+output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE, SYSCALL, RETI;
 output [1:0] MDRS, OP0S, OP1S;
 output [15:0] IRimm;
 output [2:0] REGWS, REGR0S, REGR1S, ALUfunc, cond;
@@ -172,6 +174,9 @@ assign condtype = ROMread[10:9];
 assign COND_CHK = ROMread[8];
 assign ALUfunc = ROMread[7:5];
 assign skipstate = ROMread[4:3];
+
+assign SYSCALL = ROMread[1];
+assign RETI = ROMread[0];
 
 // csigs - only on xxM cycles
 // mcycle have their lsb 0

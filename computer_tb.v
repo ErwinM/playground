@@ -1,11 +1,11 @@
 module computer_tb;
-  reg clk, reset, uart_rx, intr, trap;
+  reg clk, reset, uart_rx, irq, trap;
 
 computer U0 (
   .clock_50_b7a   (clk),
 	.reset					(reset),
 	.uart_rx				(uart_rx),
-	.intr						(intr),
+	.intr						(irq),
 	.trap						(trap)
   );
 
@@ -15,9 +15,9 @@ computer U0 (
 		#20
 		reset = 0;
 		#230
-		trap = 1;
+		irq = 1;
 		#20
-		trap = 0;
+		irq = 0;
 
 
 

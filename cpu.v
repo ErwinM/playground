@@ -54,6 +54,8 @@ decoder decoder (
 	.HLT				(hlt),
 	.fault_r		(fault),
 	.irq_r			(irq),
+	.SYSCALL		(syscall),
+	.RETI				(reti),
   .clk        (clk)
 );
 
@@ -246,6 +248,12 @@ always @(posedge clk) begin
 		bank <= 1'b1;
 		mar_force <= 1; // force MAR_LOAD
 		deassert_trap = 1;
+		// FIXME: need to rewind PC with 2
+	end
+
+	if (reti == 1) begin
+		bank <= 0;
+		cr_wr[3] = 1;
 	end
 
 	// Control reg logic

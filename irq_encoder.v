@@ -23,6 +23,7 @@ reg irq, fault;
 // this behavior is too simple, it needs to:
 // - buffer other irqs while a higher prio is asserted
 // - have a de-assert mechanism
+// FIXME: it should save multiple traps in a mask - currently it overwrites
 
 always @(posedge clk)
 begin

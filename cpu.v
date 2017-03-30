@@ -105,39 +105,9 @@ register IR (
   .out    (IRout)
 );
 
-// REGFILE
-
-wire [15:0] regr0, regr1, regw, cr_rd;
-reg [15:0] cr_wr;
-reg skip, bank;
-wire loadneg, incr_pc_temp, incr_pc_out;
-
-reg [15:0] sr1_wr;
-
-not(loadneg, state[0]);
-
-or(incr_pc_temp, skip, incr_pc);
-and(incr_pc_out, loadneg, incr_pc_temp);
-
-regfile3 regfile (
-  .regr0  	(regr0),
-  .regr1  	(regr1),
-  .regw   	(regw),
-  .regr0s 	(regr0s),
-  .regr1s 	(regr1s),
-  .regws  	(regws),
-  .we     	(reg_load),
-  .incr_pc  (incr_pc_out),
-  .reset		(reset),
-	.cr_wr		(cr_wr),
-	.cr_rd		(cr_rd),
-	.sr1_wr		(sr1_wr),
-	.bank			(bank),
-  .clk    	(clk)
-);
 
 // ALU
-wire [15:0] ALUout;
+wire [15:0] ALUout, regw;
 reg [15:0] op0, op1;
 
 alu alu (
@@ -146,6 +116,7 @@ alu alu (
   .f          (ALUfunc),
   .out        (ALUout)
 );
+
 
 assign regw = ALUout;
 assign MARin = ALUout;
@@ -156,6 +127,9 @@ assign RAMaddr = MARout;
 // bussel muxes
 // MDRS: 0: Imm, 1: RAM, 2:ALU
 // OP0S/OP1S: 0:R0, 1:R1, 2:MDR
+
+reg [15:0] regr0, regr1, CR;
+
 always @* begin
 
   case(mdrs)
@@ -204,9 +178,7 @@ always @* begin
 	// Interrupt and fault logic
 	// push trap_nr into sR1 on interrupt
 	if (irq == 1 || fault == 1) begin
-		sr1_wr = { {13'b0000000000000}, {trapnr} };
-	end else begin
-		sr1_wr = 0;
+		sR1 = { {13'b0000000000000}, {trapnr} };
 	end
 
 end
@@ -221,48 +193,176 @@ end
 	// 	6
 	// 	7 reserved for forcing write
 
-always @(posedge clk) begin
+always @* begin
 
-	// start with original CR contents
-	cr_wr = cr_rd;
-
-	// IRQ TRAPS
-	//mar_fault = 0;
-	//trap_r = 0;
 	if (reset == 1) begin
 		bank = 0;
 	end
 
-
 	deassert_trap = 0;
-
-
-	if (state == 0 && irq == 1 && cr_rd[3] == 1) begin
+	if (state == 0 && irq == 1 && CR[3] == 1) begin
 		bank <= 1'b1;
-		deassert_trap = 1;
-		cr_wr[3] = 0;
+		deassert_trap <= 1;
+		CR[3] <= 0;
 	end
 
-	if (fault == 1) begin
-		//cr_wr[3] <= 1'b1;
+	if (state == 0 && fault == 1) begin
 		bank <= 1'b1;
 		mar_force <= 1; // force MAR_LOAD
-		deassert_trap = 1;
-		// FIXME: need to rewind PC with 2
+		deassert_trap <= 1;
+		R7 = R7 - 2;
 	end
 
 	if (reti == 1) begin
 		bank <= 0;
-		cr_wr[3] = 1;
+		CR[3] <= 1;
 	end
-
-	// Control reg logic
-
-	cr_wr[1] = bank;
-
 
 end
 
+parameter IVEC = 16'h4, CR_INIT = 16'h8, sCR_INIT = 16'h2;
+
+// REGFILE
+
+reg skip, bank;
+wire loadneg, incr_pc_temp, incr_pc_out;
+
+not(loadneg, state[0]);
+
+or(incr_pc_temp, skip, incr_pc);
+and(incr_pc_out, loadneg, incr_pc_temp);
+
+
+reg [15:0] R1 = 0;
+reg [15:0] R2 = 0;
+reg [15:0] R3 = 0;
+reg [15:0] R4 = 0;
+reg [15:0] R5 = 0;
+reg [15:0] R6 = 0;
+reg [15:0] R7 = 0;
+reg [15:0] uCR = 0;
+
+reg [15:0] sR1 = 0;
+reg [15:0] sR2 = 0;
+reg [15:0] sR3 = 0;
+reg [15:0] sR4 = 0;
+reg [15:0] sR5 = 0;
+reg [15:0] sR6 = 0;
+reg [15:0] sR7 = IVEC;
+reg [15:0] sCR = 0;
+
+always @*
+begin
+	if (bank==0) begin
+		CR = uCR;
+
+		case(regr0s)
+		3'b000: regr0 = 0;
+		3'b001: regr0 = R1;
+		3'b010: regr0 = R2;
+		3'b011: regr0 = R3;
+		3'b100: regr0 = R4;
+		3'b101: regr0 = R5;
+		3'b110: regr0 = R6;
+		3'b111: regr0 = R7;
+	  default: regr0 = 0;
+		endcase
+
+		case(regr1s)
+		3'b000: regr1 = 0;
+		3'b001: regr1 = R1;
+		3'b010: regr1 = R2;
+		3'b011: regr1 = R3;
+		3'b100: regr1 = R4;
+		3'b101: regr1 = R5;
+		3'b110: regr1 = R6;
+		3'b111: regr1 = R7;
+	  default: regr1 = 0;
+		endcase
+	end else begin
+		CR = sCR;
+
+		case(regr0s)
+		3'b000: regr0 = 0;
+		3'b001: regr0 = sR1;
+		3'b010: regr0 = sR2;
+		3'b011: regr0 = sR3;
+		3'b100: regr0 = sR4;
+		3'b101: regr0 = sR5;
+		3'b110: regr0 = sR6;
+		3'b111: regr0 = sR7;
+	  default: regr0 = 0;
+		endcase
+
+		case(regr1s)
+		3'b000: regr1 = 0;
+		3'b001: regr1 = sR1;
+		3'b010: regr1 = sR2;
+		3'b011: regr1 = sR3;
+		3'b100: regr1 = sR4;
+		3'b101: regr1 = sR5;
+		3'b110: regr1 = sR6;
+		3'b111: regr1 = sR7;
+	  default: regr1 = 0;
+		endcase
+	end
+end
+
+
+always @(negedge clk)
+begin
+	if (reset && reg_load) begin
+		R7 <= 0;
+	end else if (reset) begin
+		R1 <= 0;
+		R2 <= 0;
+		R3 <= 0;
+		R4 <= 0;
+		R5 <= 0;
+		R6 <= 0;
+		R7 <= 0;
+		uCR <= CR_INIT;
+		sR1 <= 0;
+		sR2 <= 0;
+		sR3 <= 0;
+		sR4 <= 0;
+		sR5 <= 0;
+		sR6 <= 0;
+		sR7 <= IVEC;
+		sCR <= sCR_INIT;
+	end else if (reg_load) begin
+		if (bank==0) begin
+	    case(regws)
+			3'b001: R1 <= regw;
+			3'b010: R2 <= regw;
+			3'b011: R3 <= regw;
+			3'b100: R4 <= regw;
+			3'b101: R5 <= regw;
+			3'b110: R6 <= regw;
+			3'b111: R7 <= regw;
+	    endcase
+  	end else begin
+			case(regws)
+			3'b001: sR1 <= regw;
+			3'b010: sR2 <= regw;
+			3'b011: sR3 <= regw;
+			3'b100: sR4 <= regw;
+			3'b101: sR5 <= regw;
+			3'b110: sR6 <= regw;
+			3'b111: sR7 <= regw;
+			endcase
+		end
+	end
+
+	if (bank == 0) begin
+		if (incr_pc_out)
+	    R7 <= R7 + 2;
+	end else begin
+		if (incr_pc_out)
+			sR7 <= sR7 +2;
+	end
+
+end
 
 
 endmodule

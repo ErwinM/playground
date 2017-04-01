@@ -14,10 +14,10 @@ computer U0 (
     reset = 1;
 		#20
 		reset = 0;
-		#230
-		irq = 1;
-		#20
-		irq = 0;
+		//#230
+		//irq = 1;
+		//#20
+		//irq = 0;
 
 
 

@@ -6,12 +6,13 @@ module ram(
     input we,
     input clk
 );
-    reg [15:0] memory [0:512]; // byte addressable
+    reg [15:0] memory [0:2048]; // byte addressable
     reg [15:0] temp;
 
 
     initial begin
-      $readmemh("bios.hex", memory,0,128);
+      $readmemh("trampoline.hex", memory,0,2);
+      $readmemh("bios.hex", memory,128,256);
     end
 
     assign data_out = temp;

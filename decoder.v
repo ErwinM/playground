@@ -9,6 +9,8 @@ module decoder (
   REG_LOAD,
   RAM_LOAD,
   INCR_PC,
+	DECR_SP,
+	INCR_SP,
   BE,
 	RE,
   REGR0S,
@@ -35,13 +37,11 @@ module decoder (
 input clk, reset, fault_r, irq_r;
 input [15:0] instr;
 
-output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE, SYSCALL, RETI;
+output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE, SYSCALL, RETI, DECR_SP, INCR_SP;
 output [1:0] MDRS, OP0S, OP1S;
 output [15:0] IRimm;
 output [2:0] REGWS, REGR0S, REGR1S, ALUfunc, cond;
 output [3:0] state;
-
-
 
 reg [15:0] IRimm;
 
@@ -52,8 +52,8 @@ wire [3:0] next_state;
 
 
 parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
-parameter ARG0 = 8, ARG1 = 9, TGT = 10, TGT2 = 11;
-parameter IMM7 = 0, IMM10 = 1, IMM13 = 2, IMMIR = 3, IMM7U = 4;
+parameter ARG0 = 8, ARG1 = 9, TGT = 10, TGT2 = 11, ARG2 = 12;
+parameter IMM7 = 0, IMM10 = 1, IMM13 = 2, IMMIR = 3, IMM7U = 4, IMM4 = 5;
 
 assign next_state = fsm_function(state, skipstate);
 
@@ -92,7 +92,7 @@ endfunction
 
 //outputs
 reg [7:0] ROMaddr;
-wire [39:0] ROMread;
+wire [47:0] ROMread;
 
 rom micro (
   .address (ROMaddr),
@@ -139,20 +139,23 @@ assign opcodeshort = instr[14:13];
 wire [12:0] imm13;
 wire [9:0] imm10;
 wire [7:0] imm7;
+wire [3:0] imm4;
 reg [15:0] immir;
 
 assign imm7 = instr[8:2];
 assign imm10 = instr[12:3];
 assign imm13 = instr[12:0];
+assign imm4 = instr[8:5];
 // Arguments
 
-wire [2:0] tgt, arg0, arg1;
+wire [2:0] tgt, arg0, arg1, arg2;
 wire [1:0] tgt2;
 
 assign arg0 = instr[8:6];
 assign arg1 = instr[5:3];
 assign tgt = instr[2:0];
 assign tgt2 = instr[1:0];
+assign arg2 = instr[5:2];
 
 
 // Muxes
@@ -163,20 +166,20 @@ wire [1:0] MDRS, condtype, skipstate;
 wire [2:0] ALUfunc;
 reg [2:0] cond;
 
-assign xregr0s = ROMread[31:28];
-assign xregr1s = ROMread[27:24];
-assign xregws = ROMread[23:20];
-assign MDRS = ROMread[19:18];
-assign imms = ROMread[17:15];
-assign OP0S = ROMread[14:13];
-assign OP1S = ROMread[12:11];
-assign condtype = ROMread[10:9];
-assign COND_CHK = ROMread[8];
-assign ALUfunc = ROMread[7:5];
-assign skipstate = ROMread[4:3];
+assign xregr0s = ROMread[39:36];
+assign xregr1s = ROMread[35:32];
+assign xregws = ROMread[31:28];
+assign MDRS = ROMread[27:26];
+assign imms = ROMread[25:23];
+assign OP0S = ROMread[22:21];
+assign OP1S = ROMread[20:19];
+assign condtype = ROMread[18:17];
+assign COND_CHK = ROMread[16];
+assign ALUfunc = ROMread[15:13];
+assign skipstate = ROMread[12:11];
 
-assign SYSCALL = ROMread[1];
-assign RETI = ROMread[0];
+assign SYSCALL = ROMread[9];
+assign RETI = ROMread[8];
 
 // csigs - only on xxM cycles
 // mcycle have their lsb 0
@@ -186,14 +189,16 @@ wire loadpos, loadneg;
 assign loadpos = state[0];
 not(loadneg, state[0]);
 
-and( MAR_LOAD, loadpos, ROMread[39]);
-and( IR_LOAD, loadneg, ROMread[38]);
-and( MDR_LOAD, loadpos, ROMread[37]);
-and( REG_LOAD, loadneg, ROMread[36]);
-and( RAM_LOAD, loadneg, ROMread[35]);
-and( INCR_PC, loadneg, ROMread[34]); //= incr_pc;
+and( MAR_LOAD, loadpos, ROMread[47]);
+and( IR_LOAD, loadneg, ROMread[46]);
+and( MDR_LOAD, loadpos, ROMread[45]);
+and( REG_LOAD, loadneg, ROMread[44]);
+and( RAM_LOAD, loadneg, ROMread[43]);
+and( INCR_PC, loadneg, ROMread[42]);
+and( DECR_SP, loadneg, ROMread[41]);
+
 //assign SKIP = ROMread[25];
-and( BE, loadneg, ROMread[32]);
+and( BE, loadneg, ROMread[40]);
 
 
 
@@ -234,6 +239,7 @@ always @* begin
     ARG1: REGR0S = arg1;
     TGT: REGR0S = tgt;
     TGT2: REGR0S = tgt2 + 1; // alternative encoding (can't assign to r0)
+    ARG2: REGR0S = arg2;
     default: REGR0S = xregr0s[2:0];
   endcase
 
@@ -242,6 +248,7 @@ always @* begin
     ARG1: REGR1S = arg1;
     TGT: REGR1S = tgt;
     TGT2: REGR1S = tgt2 + 1; // alternative encoding (can't assign to r0)
+		ARG2: REGR0S = arg2;
     default: REGR1S = xregr1s[2:0];
   endcase
 
@@ -272,6 +279,7 @@ always @* begin
     IMM13: IRimm = { {3{imm13[12]}}, {imm13}} ;
     IMMIR: IRimm = immir; // immir is already 16b
 		IMM7U: IRimm = { {9'b000000000}, {imm7} };
+		IMM4: IRimm = { {12'b000000000000}, {imm4} };
     default: IRimm = 0;
   endcase
 

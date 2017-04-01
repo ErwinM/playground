@@ -25,7 +25,7 @@ wire [2:0]  regr0s, regr1s, regws, cond, ALUfunc;
 wire [15:0] IRout;
 wire [3:0] state;
 
-wire mdr_load, mar_load_dec, reg_load, ram_load, ir_load, incr_pc, cond_chk, fault, irq;
+wire mdr_load, mar_load_dec, reg_load, ram_load, ir_load, incr_pc, cond_chk, fault, irq, incr_sp, decr_sp;
 
 parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
 
@@ -37,6 +37,8 @@ decoder decoder (
   .RAM_LOAD   (ram_load),
   .IR_LOAD    (ir_load),
   .INCR_PC    (incr_pc),
+	.DECR_SP		(decr_sp),
+	.INCR_SP		(incr_sp),
   .BE			    (be),
 	.RE					(re),
   .OP0S       (op0s),
@@ -116,7 +118,6 @@ alu alu (
   .f          (ALUfunc),
   .out        (ALUout)
 );
-
 
 assign regw = ALUout;
 assign MARin = ALUout;
@@ -360,6 +361,22 @@ begin
 	end else begin
 		if (incr_pc_out)
 			sR7 <= sR7 +2;
+	end
+
+	if (bank == 0) begin
+		if (decr_sp)
+	    R5 <= R5 - 2;
+	end else begin
+		if (decr_sp)
+			sR5 <= sR5 - 2;
+	end
+
+	if (bank == 0) begin
+		if (incr_sp)
+	    R5 <= R5 + 2;
+	end else begin
+		if (incr_sp)
+			sR5 <= sR5 + 2;
 	end
 
 end

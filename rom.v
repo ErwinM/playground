@@ -9,9 +9,9 @@ address,  // Address input
 data      // Data output
 );
 input [7:0] address;
-output [39:0] data;
+output [47:0] data;
 
-reg [39:0] mem [0:191] ;
+reg [47:0] mem [0:191];
 
 assign data = mem[address];
 

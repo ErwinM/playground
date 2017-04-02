@@ -41,10 +41,10 @@ reg RAMwe, UARTwe, UARTce, UARTre;
 
 reg [1:0] RAMbe;
 
-parameter UARTbase = 16'h0ff0;
+parameter UARTbase = 16'hff80;
 
+assign CPUread = (CPUaddr < 16'hff80) ? data : 16'hbabe;
 
-assign CPUread = (CPUaddr < UARTbase) ? data : UARTread;
 assign RAMwrite = wdata;
 
 assign UARTwrite = CPUwrite[7:0];
@@ -81,6 +81,8 @@ always @* begin
 	UARTwe = 0;
 	UARTce = 0;
 	UARTre = 0;
+
+
 	if (we && CPUaddr < UARTbase) begin
 		RAMwe = 1;
 	end
@@ -93,7 +95,6 @@ always @* begin
 
 	wdata = CPUwrite;
   RAMbe = 2'b11;
-  data = RAMread;
   if(we == 1) begin
     if(be == 1) begin
       if(CPUaddr[0] == 1) begin
@@ -141,6 +142,7 @@ always @* begin
     end
   end
 
+	data = RAMread;
   if(be == 1) begin
     if(CPUaddr[0] == 1) begin
       // address is odd - we need to read the low byte
@@ -170,7 +172,7 @@ always @* begin
     data[13] = 0;
     data[14] = 0;
     data[15] = 0;
-  end
+	end
 
 end
 

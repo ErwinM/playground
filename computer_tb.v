@@ -14,10 +14,14 @@ computer U0 (
     reset = 1;
 		#20
 		reset = 0;
-		//#230
-		//irq = 1;
-		//#20
-		//irq = 0;
+		// #230
+// 		irq = 1;
+// 		#20
+// 		irq = 0;
+// 		#340
+// 		fault = 1;
+// 		#20
+// 		fault = 0;
 
 
 
@@ -39,9 +43,25 @@ computer U0 (
     $dumpvars(0,computer_tb.U0.ram.memory[6]);
     $dumpvars(0,computer_tb.U0.ram.memory[7]);
     $dumpvars(0,computer_tb.U0.ram.memory[8]);
-    $dumpvars(0,computer_tb.U0.ram.memory[32]);
-    $dumpvars(0,computer_tb.U0.ram.memory[34]);
-    $dumpvars(0,computer_tb.U0.ram.memory[36]);
+    $dumpvars(0,computer_tb.U0.ram.memory[128]);
+    $dumpvars(0,computer_tb.U0.ram.memory[129]);
+    $dumpvars(0,computer_tb.U0.ram.memory[130]);
+    $dumpvars(0,computer_tb.U0.ram.memory[230]);
+    $dumpvars(0,computer_tb.U0.ram.memory[231]);
+    $dumpvars(0,computer_tb.U0.ram.memory[232]);
+    $dumpvars(0,computer_tb.U0.ram.memory[233]);
+    $dumpvars(0,computer_tb.U0.ram.memory[235]);
+    $dumpvars(0,computer_tb.U0.ram.memory[236]);
+    $dumpvars(0,computer_tb.U0.ram.memory[237]);
+    $dumpvars(0,computer_tb.U0.ram.memory[238]);
+    $dumpvars(0,computer_tb.U0.ram.memory[239]);
+    $dumpvars(0,computer_tb.U0.ram.memory[240]);
+    $dumpvars(0,computer_tb.U0.ram.memory[241]);
+    $dumpvars(0,computer_tb.U0.ram.memory[242]);
+    $dumpvars(0,computer_tb.U0.ram.memory[243]);
+    $dumpvars(0,computer_tb.U0.ram.memory[244]);
+    $dumpvars(0,computer_tb.U0.ram.memory[245]);
+    $dumpvars(0,computer_tb.U0.ram.memory[246]);
 
   end
 
@@ -51,7 +71,7 @@ computer U0 (
   end
 
   initial
-  #5000 $finish;
+  #10000 $finish;
 
   //Rest of testbench code after this line
 		//

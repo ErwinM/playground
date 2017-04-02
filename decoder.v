@@ -21,7 +21,6 @@ module decoder (
   IRimm,
   MDRS,
   ALUfunc,
- //  slus,
   COND_CHK,
   cond,
   state,
@@ -100,10 +99,6 @@ rom micro (
 );
 
 
-// following regs are triggers to extend mem-i/o during the M cycles
-//reg lmdr, lir, lram;
-wire xir_load, xmdr_load, xram_load;
-
 reg HLT;
 
 always @(negedge clk)
@@ -120,6 +115,7 @@ begin
 		state = 0;
 	end else begin
 	  state <= #1 next_state;
+		HLT = 0;
   end
 end
 
@@ -138,7 +134,7 @@ assign opcodeshort = instr[14:13];
 // Immediates
 wire [12:0] imm13;
 wire [9:0] imm10;
-wire [7:0] imm7;
+wire [6:0] imm7;
 wire [3:0] imm4;
 reg [15:0] immir;
 
@@ -196,10 +192,11 @@ and( REG_LOAD, loadneg, ROMread[44]);
 and( RAM_LOAD, loadneg, ROMread[43]);
 and( INCR_PC, loadneg, ROMread[42]);
 and( DECR_SP, loadneg, ROMread[41]);
+and( INCR_SP, loadneg, ROMread[10]);
 
 //assign SKIP = ROMread[25];
-and( BE, loadneg, ROMread[40]);
-
+//and( BE, loadneg, ROMread[40]);
+assign BE = ROMread[40];
 
 
 reg RE;
@@ -248,7 +245,7 @@ always @* begin
     ARG1: REGR1S = arg1;
     TGT: REGR1S = tgt;
     TGT2: REGR1S = tgt2 + 1; // alternative encoding (can't assign to r0)
-		ARG2: REGR0S = arg2;
+	 ARG2: REGR1S = arg2;
     default: REGR1S = xregr1s[2:0];
   endcase
 

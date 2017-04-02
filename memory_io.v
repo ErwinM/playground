@@ -83,13 +83,13 @@ always @* begin
 	UARTre = 0;
 
 
-	if (we && CPUaddr < UARTbase) begin
+	if (we && CPUaddr < 16'hff80) begin
 		RAMwe = 1;
 	end
-	else if (we && CPUaddr >= UARTbase) begin
+	else if (we && CPUaddr >= 16'hff80) begin
 		UARTwe = 1;
 	end
-	if (re && CPUaddr >= UARTbase) begin
+	if (re && CPUaddr >= 16'hff80) begin
 		UARTre = 1;
 	end
 

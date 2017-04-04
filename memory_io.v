@@ -17,7 +17,8 @@ module memory_io(
  UARTaddr,
  UARTwe,
  UARTre,
- UARTce
+ UARTce,
+ HEXwe
 );
 
 input [15:0] CPUwrite, RAMread;
@@ -31,19 +32,22 @@ output [15:0] RAMaddr;
 output [2:0] UARTaddr;
 
 input we, be, re;
-output RAMwe, UARTwe, UARTre, UARTce;
+output RAMwe, UARTwe, UARTre, UARTce, HEXwe;
 output [1:0] RAMbe;
 
 // internal thingies
 wire [15:0] RAMaddr;
-reg [15:0] data, wdata;
-reg RAMwe, UARTwe, UARTce, UARTre;
+reg [15:0] data, wdata, CPUread;
+reg RAMwe, UARTwe, UARTce, UARTre, HEXwe;
 
 reg [1:0] RAMbe;
 
-parameter UARTbase = 16'hff80;
+// Memory map
+// 0x0000 - 0xff7f -> RAM
+// 0xff80 - 0ff8f  -> 7SEG display
+// 0xff90 - 0ff9f  -> UART 16450
 
-assign CPUread = (CPUaddr < 16'hff80) ? data : 16'hbabe;
+parameter HEXbase = 16'hff80, Sbase = 16'hff90;
 
 assign RAMwrite = wdata;
 
@@ -81,16 +85,29 @@ always @* begin
 	UARTwe = 0;
 	UARTce = 0;
 	UARTre = 0;
+	HEXwe = 0;
 
+	if (CPUaddr < HEXbase) begin
+		CPUread = data;
+	end else if (CPUaddr >= Sbase) begin
+		CPUread = UARTread;
+	end else begin
+		CPUread = 16'hcafe;
+	end
 
-	if (we && CPUaddr < 16'hff80) begin
-		RAMwe = 1;
+	if (we) begin
+		if (CPUaddr < HEXbase) begin
+			RAMwe = 1;
+		end else if (CPUaddr < Sbase) begin
+			HEXwe = 1;
+		end else if (CPUaddr >= Sbase) begin
+			UARTwe = 1;
+		end
 	end
-	else if (we && CPUaddr >= 16'hff80) begin
-		UARTwe = 1;
-	end
-	if (re && CPUaddr >= 16'hff80) begin
-		UARTre = 1;
+
+	if (re) begin
+		if(CPUaddr >= Sbase)
+			UARTre = 1;
 	end
 
 	wdata = CPUwrite;

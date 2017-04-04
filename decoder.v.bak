@@ -134,7 +134,7 @@ assign opcodeshort = instr[14:13];
 // Immediates
 wire [12:0] imm13;
 wire [9:0] imm10;
-wire [6:0] imm7;
+wire [7:0] imm7;
 wire [3:0] imm4;
 reg [15:0] immir;
 
@@ -195,8 +195,8 @@ and( DECR_SP, loadneg, ROMread[41]);
 and( INCR_SP, loadneg, ROMread[10]);
 
 //assign SKIP = ROMread[25];
-//and( BE, loadneg, ROMread[40]);
-assign BE = ROMread[40];
+and( BE, loadneg, ROMread[40]);
+
 
 
 reg RE;
@@ -212,9 +212,9 @@ always @* begin
   end
 
 	// logic to generate a read_enable signal for the uart
-	// only opcodes (ldb) 5 and (ldbb) 25
+	// only opcodes (ldb) 6 and (ldbb) 24
 	RE = 1'b0;
-	if(opcode == 6'b000101 || opcode == 6'b011001) begin
+	if(opcode == 6'b000110 || opcode == 6'b011000) begin
 		if(REG_LOAD)
 			RE = 1'b1;
 	end
@@ -245,7 +245,7 @@ always @* begin
     ARG1: REGR1S = arg1;
     TGT: REGR1S = tgt;
     TGT2: REGR1S = tgt2 + 1; // alternative encoding (can't assign to r0)
-	 ARG2: REGR1S = arg2;
+		ARG2: REGR1S = arg2;
     default: REGR1S = xregr1s[2:0];
   endcase
 

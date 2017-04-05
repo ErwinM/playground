@@ -36,8 +36,8 @@ output RAMwe, UARTwe, UARTre, UARTce, HEXwe;
 output [1:0] RAMbe;
 
 // internal thingies
-wire [15:0] RAMaddr;
-reg [15:0] data, wdata, CPUread;
+wire [15:0] RAMaddr, CPUread;
+reg [15:0] data, wdata; //CPUread;
 reg RAMwe, UARTwe, UARTce, UARTre, HEXwe;
 
 reg [1:0] RAMbe;
@@ -78,7 +78,9 @@ assign UARTaddr[1] = CPUaddr[1];
 assign UARTaddr[2] = CPUaddr[2];
 
 
-
+assign CPUread = (CPUaddr < HEXbase ) ? data :
+								 (CPUaddr >= Sbase) ? UARTread :
+								 16'hcafe;
 
 always @* begin
 	RAMwe = 0;
@@ -87,13 +89,13 @@ always @* begin
 	UARTre = 0;
 	HEXwe = 0;
 
-	if (CPUaddr < HEXbase) begin
-		CPUread = data;
-	end else if (CPUaddr >= Sbase) begin
-		CPUread = UARTread;
-	end else begin
-		CPUread = 16'hcafe;
-	end
+	// if (CPUaddr < HEXbase) begin
+// 		CPUread = data;
+// 	end else if (CPUaddr >= Sbase) begin
+// 		CPUread = UARTread;
+// 	end else begin
+// 		CPUread = 16'hcafe;
+// 	end
 
 	if (we) begin
 		if (CPUaddr < HEXbase) begin

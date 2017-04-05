@@ -12,9 +12,9 @@ module ram(
 
     initial begin
 
-			$readmemh("trampoline.hex", memory,0,2);
-      $readmemh("bios.hex", memory,16'h80,16'h100);
-      //$readmemh("bios.hex", memory,0,256);
+			//$readmemh("trampoline.hex", memory,0,2);
+      //$readmemh("bios.hex", memory,16'h80,16'h100);
+      $readmemh("bios.hex", memory,0,256);
     end
 
     assign data_out = temp;

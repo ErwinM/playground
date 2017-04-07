@@ -1,20 +1,25 @@
 module computer_tb;
-  reg clk, reset, uart_rx, irq, fault;
+  reg clk, reset, uart_rx, irq, fault, cont;
 
 computer U0 (
   .clock_50_b7a   (clk),
 	.reset					(reset),
 	.uart_rx				(uart_rx),
 	.intr						(irq),
-	.trap						(fault)
+	.trap						(fault),
+	.cont						(cont)
   );
 
   initial begin
     clk = 0;
     reset = 1;
+		cont = 0;
 		#20
 		reset = 0;
-		// #230
+		#5000
+		cont = 1;
+		#10
+		cont = 0;
 // 		irq = 1;
 // 		#20
 // 		irq = 0;

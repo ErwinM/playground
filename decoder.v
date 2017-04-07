@@ -30,10 +30,11 @@ module decoder (
 	irq_r,
 	SYSCALL,
 	RETI,
+	cont_r,
   clk
 );
 
-input clk, reset, fault_r, irq_r;
+input clk, reset, fault_r, irq_r, cont_r;
 input [15:0] instr;
 
 output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE, SYSCALL, RETI, DECR_SP, INCR_SP;
@@ -50,7 +51,7 @@ reg [3:0] state;
 wire [3:0] next_state;
 
 
-parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
+parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000, BREAK = 4'b1001;
 parameter ARG0 = 8, ARG1 = 9, TGT = 10, TGT2 = 11, ARG2 = 12;
 parameter IMM7 = 0, IMM10 = 1, IMM13 = 2, IMMIR = 3, IMM7U = 4, IMM4 = 5;
 
@@ -78,12 +79,15 @@ function [3:0] fsm_function;
 		EXEC: fsm_function = EXECM;
 		EXECM:
 			begin
-					if (irq_r == 1) begin
+					if (brk == 1) begin
+						fsm_function = BREAK;
+					end else if (irq_r == 1) begin
 						fsm_function = 0;
 					end else begin
 						fsm_function = FETCH;
 					end
 			end
+		BREAK: fsm_function = BREAK;
 		default: fsm_function = FETCH;
 	endcase
 endfunction
@@ -104,18 +108,21 @@ reg HLT;
 always @(negedge clk)
 begin
   if(reset == 1) begin
-    state = 0;
-		HLT = 0;
+    state <= 0;
+		HLT <= 0;
   end
 	else if (instr == 16'hfe00) begin
-		state = 0;
-		HLT = 1;
+		state <= 0;
+		HLT <= 1;
+	end
+	else if (state == BREAK && cont_r == 1) begin
+		state <= 0;
 	end
 	else if (fault_r == 1) begin
-		state = 0;
+		state <= 0;
 	end else begin
 	  state <= #1 next_state;
-		HLT = 0;
+		HLT <= 0;
   end
 end
 
@@ -176,6 +183,7 @@ assign skipstate = ROMread[12:11];
 
 assign SYSCALL = ROMread[9];
 assign RETI = ROMread[8];
+assign brk = ROMread[6];
 
 // csigs - only on xxM cycles
 // mcycle have their lsb 0

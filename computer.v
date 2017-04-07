@@ -5,10 +5,11 @@ module computer (
 	reset,
 	uart_rx,
 	intr,
-	trap
+	trap,
+	cont
 );
 
-input clock_50_b7a, reset, uart_rx, intr, trap;
+input clock_50_b7a, reset, uart_rx, intr, trap, cont;
 
 wire [15:0] CPUwrite, CPUread, CPUaddr, RAMaddr, RAMread, RAMwrite;
 wire [7:0] UARTread, UARTwrite;
@@ -46,6 +47,8 @@ cpu cpu (
   .we (we),
 	.re	(re),
   .be (be),
+	.cont (cont),
+	.brk (brk),
   .clk (clock_50_b7a)
 );
 

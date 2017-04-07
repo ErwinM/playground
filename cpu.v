@@ -10,13 +10,15 @@ module cpu (
 	hlt,
 	UART_intr,
 	page_fault,
+	cont,
+	brk,
   clk
 );
 
 // i/o
-input clk, reset, UART_intr, page_fault;
+input clk, reset, UART_intr, page_fault, cont;
 input [15:0] RAMout;
-output we, be, hlt, re;
+output we, be, hlt, re, brk;
 output [15:0] RAMin, RAMaddr;
 
 wire [1:0] op0s, op1s, mdrs;
@@ -28,6 +30,8 @@ reg [15:0] CRin;
 wire mdr_load, mar_load, mar_load_decoder, reg_load, ram_load, ir_load, incr_pc, cond_chk, fault, irq, syscall, reti, incr_sp, decr_sp;
 
 parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
+
+assign brk = (state == 4'b1001) ? 1 : 0;
 
 decoder decoder (
   .instr      (IRout),
@@ -58,6 +62,7 @@ decoder decoder (
 	.irq_r			(irq),
 	.SYSCALL		(syscall),
 	.RETI				(reti),
+	.cont_r			(cont),
   .clk        (clk)
 );
 

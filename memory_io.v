@@ -89,14 +89,6 @@ always @* begin
 	UARTre = 0;
 	HEXwe = 0;
 
-	// if (CPUaddr < HEXbase) begin
-// 		CPUread = data;
-// 	end else if (CPUaddr >= Sbase) begin
-// 		CPUread = UARTread;
-// 	end else begin
-// 		CPUread = 16'hcafe;
-// 	end
-
 	if (we) begin
 		if (CPUaddr < HEXbase) begin
 			RAMwe = 1;

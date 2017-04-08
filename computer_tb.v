@@ -16,13 +16,9 @@ computer U0 (
 		cont = 0;
 		#20
 		reset = 0;
-		#5000
-		cont = 1;
-		#10
-		cont = 0;
-// 		irq = 1;
-// 		#20
-// 		irq = 0;
+		irq = 1;
+		#20
+		irq = 0;
 // 		#340
 // 		fault = 1;
 // 		#20

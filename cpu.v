@@ -24,10 +24,11 @@ output [15:0] RAMin, RAMaddr;
 wire [1:0] op0s, op1s, mdrs;
 wire [15:0] IRimm;
 wire [2:0]  regr0s, regr1s, regws, cond, ALUfunc;
-wire [15:0] IRout, CRout;
+wire [15:0] IRout;
 wire [3:0] state;
-reg [15:0] CRin;
 wire mdr_load, mar_load, mar_load_decoder, reg_load, ram_load, ir_load, incr_pc, cond_chk, fault, irq, syscall, reti, incr_sp, decr_sp;
+
+wire [7:0] CRout;
 
 parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
 
@@ -112,6 +113,35 @@ register IR (
   .out    (IRout)
 );
 
+// Control regs
+reg [7:0] CRin, CRmask;
+wire [7:0] uCR, sCR;
+
+parameter uCR_INIT = 8'h8, sCR_INIT = 8'h1;
+
+assign CRout = (bank == 0) ? uCR : sCR;
+assign uCRce = ~bank;
+assign sCRce = bank;
+
+controlreg uCRreg (
+	.reset	 (reset),
+	.init		 (uCR_INIT),
+	.clk		 (clk),
+	.we_mask (CRmask),
+	.in			 (CRin),
+	.out		 (uCR),
+	.ce			 (uCRce)
+);
+
+controlreg sCRreg (
+	.reset	 (reset),
+	.init		 (sCR_INIT),
+	.clk		 (clk),
+	.we_mask (CRmask),
+	.in			 (CRin),
+	.out		 (sCR),
+	.ce			 (sCRce)
+);
 
 // ALU
 wire [15:0] ALUout, regw;
@@ -167,12 +197,12 @@ always @* begin
       if(cond == 3 | cond == 0 | cond == 5 ) begin
         skip = 1;
       end
-    end else if (ALUout[0] == 1) begin
+    end else if (ALUout[15] == 1) begin
       // ALUout is neg
       if(cond == 3 | cond == 1 | cond == 2) begin
         skip = 1;
       end
-    end else if(ALUout[0] == 0 ) begin
+    end else if(ALUout[15] == 0 ) begin
       // ALUout is pos
       if(cond == 5 | cond == 1 | cond == 4) begin
         skip = 1;
@@ -184,8 +214,8 @@ always @* begin
 end
 
 	// Control Reg
-	//  0	Carry
-	// 	1	Mode - This one is actually static in the respective reg
+	//  0	MODE (static)
+	// 	1	Carry
 	// 	2	Paging
 	// 	3	irq enable ( I DO need this because software might want to disable!)
 	// 	4
@@ -194,7 +224,6 @@ end
 	// 	7 reserved for forcing write
 
 always @(posedge clk) begin
-	CRin <= CRout;
 
 	if (reset == 1) begin
 		bank <= 0;
@@ -207,17 +236,15 @@ always @(posedge clk) begin
 	end else if (state == 0 && irq == 1 && CRout[3] == 1) begin
 		bank <= 1'b1;
 		deassert_trap <= 1;
-		CRin[3] <= 0;
 	end else if (reti == 1) begin
 		bank <= 0;
-		CRin[3] <= 1;
 	end else begin
 		deassert_trap <= 0;
 		mar_force <= 0;
 	end
 end
 
-parameter IVEC = 16'h4, uCR_INIT = 16'h8, sCR_INIT = 16'h2;
+parameter IVEC = 16'h4;
 
 // REGFILE
 
@@ -244,10 +271,6 @@ reg [15:0] sR4 = 0;
 reg [15:0] sR5 = 0;
 reg [15:0] sR6 = 0;
 reg [15:0] sPC = 0;
-
-reg [15:0] uCR, sCR;
-
-assign CRout = (bank == 0) ? uCR : sCR;
 
 always @*
 begin
@@ -386,19 +409,6 @@ begin
 			PC <= regw;
 		else
 			sPC <= regw;
-	end
-
-	// CR
-	if (reset) begin
-		uCR <= uCR_INIT;
-		sCR <= sCR_INIT;
-	end else begin
-		if (CRin > 0) begin
-			if (bank == 0)
-				uCR <= CRin;
-			else
-				sCR <= CRin;
-		end
 	end
 end
 

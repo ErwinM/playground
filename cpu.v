@@ -146,12 +146,14 @@ controlreg sCRreg (
 // ALU
 wire [15:0] ALUout, regw;
 reg [15:0] op0, op1;
+wire set_carry;
 
 alu alu (
   .x          (op0),
   .y          (op1),
   .f          (ALUfunc),
-  .out        (ALUout)
+  .out        (ALUout),
+	.carry_out	(set_carry)
 );
 
 assign regw = ALUout;
@@ -189,25 +191,45 @@ always @* begin
   default: op1 = regr1;
   endcase
 
+	// carry flag logic
+	CRin[1] = 0;
+	CRmask[1] = 1;
+
+	if (state == FETCH) begin
+		CRin = 0;
+		CRmask = 0;
+	end else if(state == EXEC && set_carry == 1) begin
+		CRin[1] = 1;
+		CRmask[1] = 1;
+	end
+
   // check if we need to skip
   skip = 0;
   if (cond_chk == 1) begin
     if(ALUout == 0) begin
       // ALU out is 0
-      if(cond == 3 | cond == 0 | cond == 5 ) begin
+      if(cond == 3 | cond == 0 | cond == 5 | cond == 7) begin
         skip = 1;
       end
-    end else if (ALUout[15] == 1) begin
+    end
+		if (ALUout[15] == 1) begin
       // ALUout is neg
       if(cond == 3 | cond == 1 | cond == 2) begin
         skip = 1;
       end
-    end else if(ALUout[15] == 0 ) begin
+    end
+		if(ALUout[15] == 0 ) begin
       // ALUout is pos
       if(cond == 5 | cond == 1 | cond == 4) begin
         skip = 1;
       end
     end
+		if(CRout[1] == 1) begin
+			// carry flag is set (unsigned conditional LT LTE)
+			if(cond == 6 | cond == 7) begin
+				skip = 1;
+			end
+		end
     // TO DO: unsigned conditions
   end
 
@@ -224,6 +246,7 @@ end
 	// 	7 reserved for forcing write
 
 always @(posedge clk) begin
+
 
 	if (reset == 1) begin
 		bank <= 0;

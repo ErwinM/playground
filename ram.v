@@ -13,7 +13,7 @@ module ram(
     initial begin
 			// validation suite trampoline
 			$readmemh("trampoline.hex", memory,0,2);
-      $readmemh("A_simple.hex", memory,16'h80,16'h100);
+      $readmemh("A_simple.hex", memory,16'h80,1024);
       //$readmemh("A_simple.hex", memory,0,256);
     end
 

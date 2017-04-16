@@ -28,8 +28,6 @@ wire [15:0] IRout;
 wire [3:0] state;
 wire mdr_load, mar_load, mar_load_decoder, reg_load, ram_load, ir_load, incr_pc, cond_chk, fault, irq, syscall, reti, incr_sp, decr_sp;
 
-wire [7:0] CRout;
-
 parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
 
 assign brk = (state == 4'b1001) ? 1 : 0;
@@ -113,47 +111,38 @@ register IR (
   .out    (IRout)
 );
 
-// Control regs
-reg [7:0] CRin, CRmask;
-wire [7:0] uCR, sCR;
+// Control reg
+reg [7:0] CRin;
+wire [7:0] CRout;
+reg bank;
+wire CRY, setCRY;
 
-parameter uCR_INIT = 8'h8, sCR_INIT = 8'h1;
-
-assign CRout = (bank == 0) ? uCR : sCR;
-assign uCRce = ~bank;
-assign sCRce = bank;
-
-controlreg uCRreg (
-	.reset	 (reset),
-	.init		 (uCR_INIT),
-	.clk		 (clk),
-	.we_mask (CRmask),
-	.in			 (CRin),
-	.out		 (uCR),
-	.ce			 (uCRce)
+controlreg Creg (
+	.reset		(reset),
+	.clk			(clk),
+	.in				(CRin),
+	.out			(CRout),
+	.we				(CRwe),
+	.bank			(bank),
+	.CRY			(CRY),
+	.setCRY		(setCRY)
 );
 
-controlreg sCRreg (
-	.reset	 (reset),
-	.init		 (sCR_INIT),
-	.clk		 (clk),
-	.we_mask (CRmask),
-	.in			 (CRin),
-	.out		 (sCR),
-	.ce			 (sCRce)
-);
+// carry flag logic
+// carry flag is the only CR flag that gets set independently (i think)
+assign setCRY = (state == EXEC) ? 1 : 0;
+
 
 // ALU
 wire [15:0] ALUout, regw;
 reg [15:0] op0, op1;
-wire set_carry;
 
 alu alu (
   .x          (op0),
   .y          (op1),
   .f          (ALUfunc),
   .out        (ALUout),
-	.carry_out	(set_carry)
+	.carry_out	(CRY)
 );
 
 assign regw = ALUout;
@@ -190,18 +179,6 @@ always @* begin
   2'b10: op1 = MDRout;
   default: op1 = regr1;
   endcase
-
-	// carry flag logic
-	CRin[1] = 0;
-	CRmask[1] = 1;
-
-	if (state == FETCH) begin
-		CRin = 0;
-		CRmask = 0;
-	end else if(state == EXEC && set_carry == 1) begin
-		CRin[1] = 1;
-		CRmask[1] = 1;
-	end
 
   // check if we need to skip
   skip = 0;
@@ -261,7 +238,7 @@ parameter IVEC = 16'h4;
 
 // REGFILE
 
-reg skip, bank;
+reg skip;
 wire loadneg, incr_pc_temp, incr_pc_out;
 
 not(loadneg, state[0]);
@@ -298,7 +275,7 @@ begin
 		4'b0101: regr0 = R5;
 		4'b0110: regr0 = R6;
 		4'b0111: regr0 = PC;
-		4'b1111: regr0 = uCR;
+		4'b1111: regr0 = CRout;
 	  default: regr0 = 0;
 		endcase
 
@@ -324,7 +301,7 @@ begin
 		4'b0101: regr0 = sR5;
 		4'b0110: regr0 = sR6;
 		4'b0111: regr0 = sPC;
-		4'b1111: regr0 = sCR;
+		4'b1111: regr0 = CRout;
 	  default: regr0 = 0;
 		endcase
 

@@ -72,7 +72,7 @@ computer U0 (
   end
 
   initial
-  #10000 $finish;
+  #20000 $finish;
 
   //Rest of testbench code after this line
 		//

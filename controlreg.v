@@ -8,6 +8,18 @@ module controlreg(
 	ce
 );
 
+
+	// Control Reg
+	//  0	MODE (static)
+	// 	1	Carry
+	// 	2	Paging
+	// 	3	irq enable ( I DO need this because software might want to disable!)
+	// 	4
+	// 	5
+	// 	6
+	// 	7
+
+
 input reset, clk, ce;
 input [7:0] we_mask, in, init;
 output [7:0] out;

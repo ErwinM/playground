@@ -40,7 +40,8 @@ input [15:0] instr;
 output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE, SYSCALL, RETI, DECR_SP, INCR_SP;
 output [1:0] MDRS, OP0S, OP1S;
 output [15:0] IRimm;
-output [2:0] REGWS, REGR0S, REGR1S, ALUfunc, cond;
+output [2:0] ALUfunc, cond;
+output [3:0] REGWS, REGR0S, REGR1S;
 output [3:0] state;
 
 reg [15:0] IRimm;
@@ -52,7 +53,7 @@ wire [3:0] next_state;
 
 
 parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000, BREAK = 4'b1001;
-parameter ARG0 = 8, ARG1 = 9, TGT = 10, TGT2 = 11, ARG2 = 12;
+parameter ARG0 = 8, ARG1 = 9, TGT = 10, TGT2 = 11, ARG2 = 12, FLAGS = 15;
 parameter IMM7 = 0, IMM10 = 1, IMM13 = 2, IMMIR = 3, IMM7U = 4, IMM4 = 5;
 
 assign next_state = fsm_function(state, skipstate);
@@ -163,7 +164,7 @@ assign arg2 = instr[5:2];
 
 // Muxes
 wire [3:0] xregr0s, xregr1s, xregws, imms;
-reg [2:0] REGR0S, REGR1S, REGWS;
+reg [3:0] REGR0S, REGR1S, REGWS;
 wire [1:0] MDRS, condtype, skipstate;
 //reg incr_pc;
 wire [2:0] ALUfunc;
@@ -245,7 +246,7 @@ always @* begin
     TGT: REGR0S = tgt;
     TGT2: REGR0S = tgt2 + 1; // alternative encoding (can't assign to r0)
     ARG2: REGR0S = arg2;
-    default: REGR0S = xregr0s[2:0];
+    default: REGR0S = xregr0s[3:0];
   endcase
 
   case(xregr1s)
@@ -253,8 +254,8 @@ always @* begin
     ARG1: REGR1S = arg1;
     TGT: REGR1S = tgt;
     TGT2: REGR1S = tgt2 + 1; // alternative encoding (can't assign to r0)
-	 ARG2: REGR1S = arg2;
-    default: REGR1S = xregr1s[2:0];
+	 	ARG2: REGR1S = arg2;
+    default: REGR1S = xregr1s[3:0];
   endcase
 
   case(xregws)
@@ -262,7 +263,7 @@ always @* begin
     ARG1: REGWS = arg1;
     TGT: REGWS = tgt;
     TGT2: REGWS = tgt2 + 1; // alternative encoding (can't assign to r0)
-    default: REGWS = xregws[2:0];
+    default: REGWS = xregws[3:0];
   endcase
 
   case(arg0)

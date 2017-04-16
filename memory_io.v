@@ -18,10 +18,12 @@ module memory_io(
  UARTwe,
  UARTre,
  UARTce,
- HEXwe
+ HEXwe,
+ BIOSread,
+ clk
 );
 
-input [15:0] CPUwrite, RAMread;
+input [15:0] CPUwrite, RAMread, BIOSread;
 output [15:0] CPUread, RAMwrite;
 
 input [7:0] UARTread;
@@ -31,14 +33,14 @@ input [15:0] CPUaddr;
 output [15:0] RAMaddr;
 output [2:0] UARTaddr;
 
-input we, be, re;
+input we, be, re, clk;
 output RAMwe, UARTwe, UARTre, UARTce, HEXwe;
 output [1:0] RAMbe;
 
 // internal thingies
 wire [15:0] RAMaddr, CPUread;
-reg [15:0] data, wdata; //CPUread;
-reg RAMwe, UARTwe, UARTce, UARTre, HEXwe;
+reg [15:0] data, wdata, BIOSdata; //CPUread;
+reg RAMwe, UARTwe, UARTce, UARTre, HEXwe, bios;
 
 reg [1:0] RAMbe;
 
@@ -78,9 +80,10 @@ assign UARTaddr[1] = CPUaddr[1];
 assign UARTaddr[2] = CPUaddr[2];
 
 
-assign CPUread = (CPUaddr < HEXbase ) ? data :
+assign CPUread = (CPUaddr < 16'h0800 && bios == 1) ? BIOSdata :
 								 (CPUaddr >= Sbase) ? UARTread :
-								 16'hcafe;
+								 (CPUaddr >= HEXbase) ? 16'hcafe :
+								 data;
 
 always @* begin
 	RAMwe = 0;
@@ -88,6 +91,7 @@ always @* begin
 	UARTce = 0;
 	UARTre = 0;
 	HEXwe = 0;
+	bios = 0;
 
 	if (we) begin
 		if (CPUaddr < HEXbase) begin
@@ -185,6 +189,22 @@ always @* begin
     data[15] = 0;
 	end
 
+	BIOSdata = BIOSread;
+	if(be == 1)begin
+    if(CPUaddr[0] == 1) begin
+      // address is odd - we need to read the low byte
+			BIOSdata = BIOSread & 16'hff;
+		end else begin
+			BIOSdata = BIOSread >> 8;
+		end
+	end
+
+end
+
+always @(posedge clk) begin
+	if (CPUaddr > 16'h0800) begin
+		bios = 0;
+	end
 end
 
 endmodule

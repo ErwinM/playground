@@ -1,4 +1,3 @@
-
 module cpu (
   reset,
   RAMin,
@@ -23,7 +22,8 @@ output [15:0] RAMin, RAMaddr;
 
 wire [1:0] op0s, op1s, mdrs;
 wire [15:0] IRimm;
-wire [2:0]  regr0s, regr1s, regws, cond, ALUfunc;
+wire [2:0] cond, ALUfunc;
+wire [3:0] regr0s, regr1s, regws;
 wire [15:0] IRout;
 wire [3:0] state;
 wire mdr_load, mar_load, mar_load_decoder, reg_load, ram_load, ir_load, incr_pc, cond_chk, fault, irq, syscall, reti, incr_sp, decr_sp;
@@ -218,7 +218,7 @@ always @* begin
         skip = 1;
       end
     end
-		if(ALUout[15] == 0 ) begin
+		if(ALUout[15] == 0 && ALUout != 0) begin
       // ALUout is pos
       if(cond == 5 | cond == 1 | cond == 4) begin
         skip = 1;
@@ -234,16 +234,6 @@ always @* begin
   end
 
 end
-
-	// Control Reg
-	//  0	MODE (static)
-	// 	1	Carry
-	// 	2	Paging
-	// 	3	irq enable ( I DO need this because software might want to disable!)
-	// 	4
-	// 	5
-	// 	6
-	// 	7 reserved for forcing write
 
 always @(posedge clk) begin
 
@@ -300,51 +290,53 @@ begin
 	if (bank==0) begin
 
 		case(regr0s)
-		3'b000: regr0 = 0;
-		3'b001: regr0 = R1;
-		3'b010: regr0 = R2;
-		3'b011: regr0 = R3;
-		3'b100: regr0 = R4;
-		3'b101: regr0 = R5;
-		3'b110: regr0 = R6;
-		3'b111: regr0 = PC;
+		4'b0000: regr0 = 0;
+		4'b0001: regr0 = R1;
+		4'b0010: regr0 = R2;
+		4'b0011: regr0 = R3;
+		4'b0100: regr0 = R4;
+		4'b0101: regr0 = R5;
+		4'b0110: regr0 = R6;
+		4'b0111: regr0 = PC;
+		4'b1111: regr0 = uCR;
 	  default: regr0 = 0;
 		endcase
 
 		case(regr1s)
-		3'b000: regr1 = 0;
-		3'b001: regr1 = R1;
-		3'b010: regr1 = R2;
-		3'b011: regr1 = R3;
-		3'b100: regr1 = R4;
-		3'b101: regr1 = R5;
-		3'b110: regr1 = R6;
-		3'b111: regr1 = PC;
+		4'b0000: regr1 = 0;
+		4'b0001: regr1 = R1;
+		4'b0010: regr1 = R2;
+		4'b0011: regr1 = R3;
+		4'b0100: regr1 = R4;
+		4'b0101: regr1 = R5;
+		4'b0110: regr1 = R6;
+		4'b0111: regr1 = PC;
 	  default: regr1 = 0;
 		endcase
 	end else begin
 
 		case(regr0s)
-		3'b000: regr0 = 0;
-		3'b001: regr0 = sR1;
-		3'b010: regr0 = sR2;
-		3'b011: regr0 = sR3;
-		3'b100: regr0 = sR4;
-		3'b101: regr0 = sR5;
-		3'b110: regr0 = sR6;
-		3'b111: regr0 = sPC;
+		4'b0000: regr0 = 0;
+		4'b0001: regr0 = sR1;
+		4'b0010: regr0 = sR2;
+		4'b0011: regr0 = sR3;
+		4'b0100: regr0 = sR4;
+		4'b0101: regr0 = sR5;
+		4'b0110: regr0 = sR6;
+		4'b0111: regr0 = sPC;
+		4'b1111: regr0 = sCR;
 	  default: regr0 = 0;
 		endcase
 
 		case(regr1s)
-		3'b000: regr1 = 0;
-		3'b001: regr1 = sR1;
-		3'b010: regr1 = sR2;
-		3'b011: regr1 = sR3;
-		3'b100: regr1 = sR4;
-		3'b101: regr1 = sR5;
-		3'b110: regr1 = sR6;
-		3'b111: regr1 = sPC;
+		4'b0000: regr1 = 0;
+		4'b0001: regr1 = sR1;
+		4'b0010: regr1 = sR2;
+		4'b0011: regr1 = sR3;
+		4'b0100: regr1 = sR4;
+		4'b0101: regr1 = sR5;
+		4'b0110: regr1 = sR6;
+		4'b0111: regr1 = sPC;
 	  default: regr1 = 0;
 		endcase
 	end
@@ -371,21 +363,21 @@ begin
 	end else if (reg_load) begin
 		if (bank==0) begin
 	    case(regws)
-			3'b001: R1 <= regw;
-			3'b010: R2 <= regw;
-			3'b011: R3 <= regw;
-			3'b100: R4 <= regw;
-			3'b101: R5 <= regw;
+			4'b0001: R1 <= regw;
+			4'b0010: R2 <= regw;
+			4'b0011: R3 <= regw;
+			4'b0100: R4 <= regw;
+			4'b0101: R5 <= regw;
 			// R6 is assigned below
 			// R7 is assigned below
 	    endcase
   	end else begin
 			case(regws)
-			3'b001: sR1 <= regw;
-			3'b010: sR2 <= regw;
-			3'b011: sR3 <= regw;
-			3'b100: sR4 <= regw;
-			3'b101: sR5 <= regw;
+			4'b0001: sR1 <= regw;
+			4'b0010: sR2 <= regw;
+			4'b0011: sR3 <= regw;
+			4'b0100: sR4 <= regw;
+			4'b0101: sR5 <= regw;
 			// sR6 is assigned below
 			// sR7 is assigned below
 			endcase
@@ -407,7 +399,7 @@ begin
 			R6 <= R6 - 16'h2;
 		else
 			sR6 <= sR6 - 16'h2;
-	end else if (reg_load && regws == 3'b110) begin
+	end else if (reg_load && regws == 4'b0110) begin
 		if (bank == 0)
 			R6 <= regw;
 		else
@@ -427,7 +419,7 @@ begin
 			sPC <= sPC + 16'h2;
 	end else if (reti) begin
 		sPC <= IVEC;
-	end else if (reg_load && regws == 3'b111) begin
+	end else if (reg_load && regws == 4'b0111) begin
 		if (bank == 0)
 			PC <= regw;
 		else

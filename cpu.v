@@ -27,6 +27,7 @@ wire [3:0] regr0s, regr1s, regws;
 wire [15:0] IRout;
 wire [3:0] state;
 wire mdr_load, mar_load, mar_load_decoder, reg_load, ram_load, ir_load, incr_pc, cond_chk, fault, irq, syscall, reti, incr_sp, decr_sp;
+wire wptb, wpte;
 
 parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
 
@@ -62,10 +63,12 @@ decoder decoder (
 	.SYSCALL		(syscall),
 	.RETI				(reti),
 	.cont_r			(cont),
+	.WPTB				(wptb),
+	.WPTE				(wpte),
   .clk        (clk)
 );
 
-wire [3:0] trapnr;
+wire [7:0] trapnr;
 reg deassert_trap;
 // irq_encoder
 irq_encoder irq_encoder (
@@ -112,8 +115,7 @@ register IR (
 );
 
 // Control reg
-reg [7:0] CRin;
-wire [7:0] CRout;
+wire [7:0] CRin, CRout;
 reg bank;
 wire CRY, setCRY;
 
@@ -131,7 +133,8 @@ controlreg Creg (
 // carry flag logic
 // carry flag is the only CR flag that gets set independently (i think)
 assign setCRY = (state == EXEC) ? 1 : 0;
-
+assign CRin = regw[7:0];
+assign CRwe = (regws == 4'b1111 && reg_load) ? 1 : 0;
 
 // ALU
 wire [15:0] ALUout, regw;
@@ -149,7 +152,7 @@ assign regw = ALUout;
 assign MARin = ALUout;
 assign RAMin = MDRout;
 assign we = ram_load;
-assign RAMaddr = MARout;
+
 
 // bussel muxes
 // MDRS: 0: Imm, 1: RAM, 2:ALU
@@ -170,6 +173,7 @@ always @* begin
   2'b00: op0 = regr0;
   2'b01: op0 = regr1;
   2'b10: op0 = MDRout;
+  2'b11: op0 = ptb;
   default: op0 = regr0;
   endcase
 
@@ -177,6 +181,7 @@ always @* begin
   2'b00: op1 = regr0;
   2'b01: op1 = regr1;
   2'b10: op1 = MDRout;
+  2'b11: op1 = pagetable[MDRout];
   default: op1 = regr1;
   endcase
 
@@ -214,6 +219,7 @@ end
 
 always @(posedge clk) begin
 
+	// fault and trap logic
 
 	if (reset == 1) begin
 		bank <= 0;
@@ -235,6 +241,38 @@ always @(posedge clk) begin
 end
 
 parameter IVEC = 16'h4;
+
+// PAGING
+
+reg [15:0] pagetable [0:512];
+reg [15:0] ptb, ptidx, pte, pageaddr_t;
+reg [18:0] pageaddr;
+
+assign RAMaddr = (CRout[2] == 1) ? pageaddr_t : MARout;
+
+always @* begin
+	ptidx <= ptb + {{11{1'b0}},{MARout[15:11]}};
+	pte <= pagetable[ptidx];
+	pageaddr <= {{pte[15:8]}, {MARout[10:0]}};
+
+	pageaddr_t <= pageaddr[15:0];
+end
+
+always @(negedge clk) begin
+	// how to load a pte into the pt...
+	// lets try and bypass the alu so we can use op0/1 directly
+	// wpte (r1), r2
+	if (wpte) begin
+		pagetable[op0] <= op1;
+	end
+
+	if (reset) begin
+		ptb <= 0;
+	end else if (wptb) begin
+		ptb <= op0;
+	end
+end
+
 
 // REGFILE
 
@@ -336,7 +374,7 @@ begin
 	end else if (irq == 1 || fault == 1) begin
 		// Interrupt and fault logic
 		// push trapnr into sR1 on interrupt
-		sR1 <= { {12'b000000000000}, {trapnr} };
+		sR1 <= { {8'b00000000}, {trapnr} };
 	end else if (reg_load) begin
 		if (bank==0) begin
 	    case(regws)

@@ -6,15 +6,15 @@ module ram(
     input we,
     input clk
 );
-    reg [15:0] memory [0:2048]; // byte addressable
+    reg [15:0] memory [0:8192]; // byte addressable
     reg [15:0] temp;
 
 
     initial begin
 			// validation suite trampoline
-			$readmemh("trampoline.hex", memory,0,2);
-      $readmemh("A_simple.hex", memory,16'h80,1024);
-      //$readmemh("A_simple.hex", memory,0,256);
+			//$readmemh("trampoline.hex", memory,0,2);
+      //$readmemh("A_simple.hex", memory,16'h80,1024);
+      $readmemh("A_simple.hex", memory,0,256);
     end
 
     assign data_out = temp;

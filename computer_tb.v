@@ -47,22 +47,10 @@ computer U0 (
     $dumpvars(0,computer_tb.U0.ram.memory[128]);
     $dumpvars(0,computer_tb.U0.ram.memory[129]);
     $dumpvars(0,computer_tb.U0.ram.memory[130]);
-    $dumpvars(0,computer_tb.U0.ram.memory[230]);
-    $dumpvars(0,computer_tb.U0.ram.memory[231]);
-    $dumpvars(0,computer_tb.U0.ram.memory[232]);
-    $dumpvars(0,computer_tb.U0.ram.memory[233]);
-    $dumpvars(0,computer_tb.U0.ram.memory[235]);
-    $dumpvars(0,computer_tb.U0.ram.memory[236]);
-    $dumpvars(0,computer_tb.U0.ram.memory[237]);
-    $dumpvars(0,computer_tb.U0.ram.memory[238]);
-    $dumpvars(0,computer_tb.U0.ram.memory[239]);
-    $dumpvars(0,computer_tb.U0.ram.memory[240]);
-    $dumpvars(0,computer_tb.U0.ram.memory[241]);
-    $dumpvars(0,computer_tb.U0.ram.memory[242]);
-    $dumpvars(0,computer_tb.U0.ram.memory[243]);
-    $dumpvars(0,computer_tb.U0.ram.memory[244]);
-    $dumpvars(0,computer_tb.U0.ram.memory[245]);
-    $dumpvars(0,computer_tb.U0.ram.memory[246]);
+    $dumpvars(0,computer_tb.U0.cpu.pagetable[0]);
+    $dumpvars(0,computer_tb.U0.cpu.pagetable[1]);
+    $dumpvars(0,computer_tb.U0.cpu.pagetable[2]);
+    $dumpvars(0,computer_tb.U0.cpu.pagetable[3]);
 
   end
 
@@ -72,7 +60,7 @@ computer U0 (
   end
 
   initial
-  #20000 $finish;
+  #40000 $finish;
 
   //Rest of testbench code after this line
 		//

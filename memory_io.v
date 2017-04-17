@@ -202,6 +202,7 @@ always @* begin
 end
 
 always @(posedge clk) begin
+	// if we address memory above 0x800 the bios gets swapped out of the memory map
 	if (CPUaddr > 16'h0800) begin
 		bios = 0;
 	end

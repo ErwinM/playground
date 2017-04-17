@@ -31,6 +31,8 @@ module decoder (
 	SYSCALL,
 	RETI,
 	cont_r,
+	WPTB,
+	WPTE,
   clk
 );
 
@@ -38,6 +40,7 @@ input clk, reset, fault_r, irq_r, cont_r;
 input [15:0] instr;
 
 output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE, SYSCALL, RETI, DECR_SP, INCR_SP;
+output WPTB, WPTE;
 output [1:0] MDRS, OP0S, OP1S;
 output [15:0] IRimm;
 output [2:0] ALUfunc, cond;
@@ -203,10 +206,13 @@ and( INCR_PC, loadneg, ROMread[42]);
 and( DECR_SP, loadneg, ROMread[41]);
 and( INCR_SP, loadneg, ROMread[10]);
 
+
 //assign SKIP = ROMread[25];
 //and( BE, loadneg, ROMread[40]);
 assign BE = ROMread[40];
-
+assign SYSCALL = ROMread[9];
+assign WPTB = ROMread[5];
+assign WPTE = ROMread[4];
 
 reg RE;
 

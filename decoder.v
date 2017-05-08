@@ -33,6 +33,8 @@ module decoder (
 	cont_r,
 	WPTB,
 	WPTE,
+	IVEC_LOAD,
+	UREG,
   clk
 );
 
@@ -40,7 +42,7 @@ input clk, reset, fault_r, irq_r, cont_r;
 input [15:0] instr;
 
 output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE, SYSCALL, RETI, DECR_SP, INCR_SP;
-output WPTB, WPTE;
+output WPTB, WPTE, IVEC_LOAD, UREG;
 output [1:0] MDRS, OP0S, OP1S;
 output [15:0] IRimm;
 output [2:0] ALUfunc, cond;
@@ -185,14 +187,12 @@ assign COND_CHK = ROMread[16];
 assign ALUfunc = ROMread[15:13];
 assign skipstate = ROMread[12:11];
 
-assign SYSCALL = ROMread[9];
 assign RETI = ROMread[8];
 assign brk = ROMread[6];
 
 // csigs - only on xxM cycles
 // mcycle have their lsb 0
 wire loadpos, loadneg;
-//reg marload, irload, mdrload, regload, ramload, incrpc;
 
 assign loadpos = state[0];
 not(loadneg, state[0]);
@@ -206,18 +206,22 @@ and( INCR_PC, loadneg, ROMread[42]);
 and( DECR_SP, loadneg, ROMread[41]);
 and( INCR_SP, loadneg, ROMread[10]);
 
+reg RE_fetch;
 
 //assign SKIP = ROMread[25];
 //and( BE, loadneg, ROMread[40]);
 assign BE = ROMread[40];
-assign SYSCALL = ROMread[9];
 assign WPTB = ROMread[5];
 assign WPTE = ROMread[4];
+or(RE, RE_fetch, ROMread[3]);
+assign IVEC_LOAD = (opcode == 6'd44 && state == DECODEM) ? 1'b1 : 1'b0;
+assign SYSCALL = (opcode == 6'd34 && state == DECODEM) ? 1'b1 : 1'b0;
+assign UREG = (opcode == 6'd36 && (state == EXECM || state == EXEC)) ? 1'b1 : 1'b0;
 
-reg RE;
 
 always @* begin
-  ROMaddr = 3; // HACK is a zero instruction for now!!!
+	RE_fetch = 0;
+  ROMaddr = 3; // HACK: 3 holds a zero micro instruction for now!!!
   //incr_pc = 0;
 
   if(codetype != 1) begin
@@ -226,17 +230,17 @@ always @* begin
     opcode = opcodelong;
   end
 
-	// logic to generate a read_enable signal for the uart
-	// only opcodes (ldb) 5 and (ldbb) 25
-	RE = 1'b0;
-	if(opcode == 6'b000101 || opcode == 6'b011001) begin
-		if(REG_LOAD)
-			RE = 1'b1;
-	end
-
   case(state)
-    FETCH: ROMaddr = 2;
-    FETCHM: ROMaddr = 2;
+    FETCH:
+			begin
+				ROMaddr = 2;
+				RE_fetch = 1'b1;
+			end
+    FETCHM:
+			begin
+				ROMaddr = 2;
+				RE_fetch = 1'b1;
+			end
     DECODE: ROMaddr = opcode;
     DECODEM: ROMaddr = opcode;
     READ: ROMaddr = opcode + 64;
@@ -304,7 +308,6 @@ always @* begin
   endcase
 
 end
-
 
 endmodule
 

@@ -68,12 +68,15 @@ begin
 		irq <= 0;
 	end
 
-	if (trapnr > 0) begin
+	if (trapnr) begin
 		if (trapnr[0] == 1 || trapnr[1] == 1) begin
 			fault <= 1;
 		end else begin
 			irq <= 1;
 		end
+	end else begin
+		fault <= 0;
+		irq <= 0;
 	end
 end
 

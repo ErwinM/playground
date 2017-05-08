@@ -1,5 +1,5 @@
 module computer_tb;
-  reg clk, reset, uart_rx, irq, fault, cont;
+  reg clk, reset, uart_rx, irq, fault, cont, bios_e;
 
 computer U0 (
   .clock_50_b7a   (clk),
@@ -7,22 +7,37 @@ computer U0 (
 	.uart_rx				(uart_rx),
 	.intr						(irq),
 	.trap						(fault),
-	.cont						(cont)
+	.cont						(cont),
+	.bios_e					(bios_e)
   );
 
   initial begin
     clk = 0;
     reset = 1;
 		cont = 0;
+		bios_e = 0;
 		#20
 		reset = 0;
-		// irq = 1;
-		// #20
-		// irq = 0;
-// 		#340
-// 		fault = 1;
-// 		#20
-// 		fault = 0;
+		uart_rx = 1;
+		#750
+		uart_rx = 0;
+		#160
+		uart_rx =1;
+		#160
+		uart_rx =0;
+		#160
+		uart_rx =1;
+		#160
+		uart_rx =0;
+		#320
+		uart_rx =1;
+		#320;
+		uart_rx = 0;
+		#160
+		uart_rx =1;
+		uart_rx = 0;
+		#3000
+		uart_rx = 1;
 
 
 

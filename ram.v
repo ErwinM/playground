@@ -1,12 +1,12 @@
 module ram(
     output [15:0] data_out,
-    input [15:0] address,
+    input [17:0] address,
     input [15:0] data_in,
     input [1:0] be,
     input we,
     input clk
 );
-    reg [15:0] memory [0:8192]; // byte addressable
+    reg [15:0] memory [0:4096]; // byte addressable
     reg [15:0] temp;
 
 

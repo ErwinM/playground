@@ -6,12 +6,15 @@ module computer (
 	uart_rx,
 	intr,
 	trap,
-	cont
+	cont,
+	bios_e
 );
 
-input clock_50_b7a, reset, uart_rx, intr, trap, cont;
+input clock_50_b7a, reset, uart_rx, intr, trap, cont, bios_e;
 
-wire [15:0] CPUwrite, CPUread, CPUaddr, RAMaddr, RAMread, RAMwrite, BIOSread;
+wire [15:0] CPUwrite, CPUread, RAMread, RAMwrite, BIOSread;
+wire [18:0] CPUaddr;
+wire [17:0] RAMaddr;
 wire [7:0] UARTread, UARTwrite;
 wire we, be, re, RAMwe, UARTwe, UARTre;
 wire [1:0] RAMbe;
@@ -35,7 +38,7 @@ memory_io mem_io (
   .UARTwe			 (UARTwe),
 	.UARTre			 (UARTre),
 	.BIOSread		 (BIOSread),
-	.clk				 (clock_50_b7a)
+	.bios				 (bios_e)
 );
 
 
@@ -45,7 +48,6 @@ cpu cpu (
   .RAMout (CPUread),
   .RAMaddr  (CPUaddr),
 	.UART_intr	(intr),
-	.page_fault (trap),
   .we (we),
 	.re	(re),
   .be (be),
@@ -64,7 +66,7 @@ ram ram (
 );
 
 bios bios (
-	.address	(CPUaddr),  // Address input
+	.address	(RAMaddr),  // Address input
 	.data			(BIOSread),      // Data output
 	.clk			(clock_50_b7a)
 );

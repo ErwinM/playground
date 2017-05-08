@@ -11,7 +11,7 @@ module controlreg(
 
 
 	// Control Reg
-	//  0	MODE (static)
+	//  0	MODE (static) - 0 = user, 1 = super
 	// 	1	Carry
 	// 	2	Paging
 	// 	3	irq enable ( I DO need this because software might want to disable!)
@@ -29,7 +29,7 @@ reg [7:0] uCR, sCR;
 
 assign out = (bank == 0) ? uCR : sCR;
 
-always @(negedge clk) begin
+always @(posedge clk) begin
 
 	if (reset) begin
 		uCR <= 8'h8;

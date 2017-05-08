@@ -8,17 +8,17 @@ module cpu (
   be,
 	hlt,
 	UART_intr,
-	page_fault,
 	cont,
 	brk,
   clk
 );
 
 // i/o
-input clk, reset, UART_intr, page_fault, cont;
+input clk, reset, UART_intr, cont;
 input [15:0] RAMout;
 output we, be, hlt, re, brk;
-output [15:0] RAMin, RAMaddr;
+output [15:0] RAMin;
+output [18:0] RAMaddr;
 
 wire [1:0] op0s, op1s, mdrs;
 wire [15:0] IRimm;
@@ -26,8 +26,8 @@ wire [2:0] cond, ALUfunc;
 wire [3:0] regr0s, regr1s, regws;
 wire [15:0] IRout;
 wire [3:0] state;
-wire mdr_load, mar_load, mar_load_decoder, reg_load, ram_load, ir_load, incr_pc, cond_chk, fault, irq, syscall, reti, incr_sp, decr_sp;
-wire wptb, wpte;
+wire mdr_load, mar_load, mar_load_decoder, reg_load, ram_load, ir_load, incr_pc, cond_chk, fault, irq, reti, incr_sp, decr_sp;
+wire wptb, wpte, ivec_load, syscall_irq, ureg;
 
 parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
 
@@ -60,21 +60,27 @@ decoder decoder (
 	.HLT				(hlt),
 	.fault_r		(fault),
 	.irq_r			(irq),
-	.SYSCALL		(syscall),
 	.RETI				(reti),
 	.cont_r			(cont),
 	.WPTB				(wptb),
 	.WPTE				(wpte),
+	.IVEC_LOAD	(ivec_load),
+	.SYSCALL		(syscall_irq),
+	.UREG				(ureg),
   .clk        (clk)
 );
 
 wire [7:0] trapnr;
 reg deassert_trap;
+wire page_fault, prot_fault;
+
 // irq_encoder
 irq_encoder irq_encoder (
 	.reset			(reset),
 	.uart_irq		(UART_intr),
+	.syscall_irq (syscall_irq),
 	.page_fault	(page_fault),
+	.prot_fault	(prot_fault),
 	.trapnr			(trapnr),
 	.irq				(irq),
 	.fault			(fault),
@@ -106,6 +112,21 @@ register_posedge MAR (
   .out    (MARout)
 );
 
+// reg to copy MAR so we can inspect it at page fault
+reg bank;
+wire load_cr2;
+wire [15:0] CR2out;
+
+and(load_cr2, ~bank, mar_load);
+
+register_posedge CR2 (
+  .in     (MARin),
+  .reset  (reset),
+  .load   (load_cr2),
+  .clk    (clk),
+  .out    (CR2out)
+);
+
 register IR (
   .in     (RAMout),
   .reset  (reset),
@@ -116,8 +137,7 @@ register IR (
 
 // Control reg
 wire [7:0] CRin, CRout;
-reg bank;
-wire CRY, setCRY;
+wire CRY, setCRY, uMode, sMode;
 
 controlreg Creg (
 	.reset		(reset),
@@ -130,14 +150,27 @@ controlreg Creg (
 	.setCRY		(setCRY)
 );
 
+wire [15:0] ALUout, ivec_out;
+
+register Ivec (
+  .in     (ALUout),
+  .reset  (reset),
+  .load   (ivec_load),
+  .clk    (clk),
+  .out    (ivec_out)
+);
+
 // carry flag logic
 // carry flag is the only CR flag that gets set independently (i think)
 assign setCRY = (state == EXEC) ? 1 : 0;
 assign CRin = regw[7:0];
 assign CRwe = (regws == 4'b1111 && reg_load) ? 1 : 0;
+assign sMode = CRout[0];
+not(uMode, CRout[0]);
+
 
 // ALU
-wire [15:0] ALUout, regw;
+wire [15:0] regw;
 reg [15:0] op0, op1;
 
 alu alu (
@@ -240,22 +273,27 @@ always @(posedge clk) begin
 	end
 end
 
-parameter IVEC = 16'h4;
-
-// PAGING
+// PAGING LOGIC
 
 reg [15:0] pagetable [0:512];
 reg [15:0] ptb, ptidx, pte, pageaddr_t;
 reg [18:0] pageaddr;
+wire pg_not_present, prot_f;
 
-assign RAMaddr = (CRout[2] == 1) ? pageaddr_t : MARout;
+// page & prot fault logic
+not(page_not_present, pte[0]);
+and(prot_f, uMode, pte[1]);
+and(page_fault, CRout[2], page_not_present);
+and(prot_fault, CRout[2], prot_f);
+
+assign RAMaddr = (CRout[2] == 1) ? pageaddr : MARout;
 
 always @* begin
 	ptidx <= ptb + {{11{1'b0}},{MARout[15:11]}};
 	pte <= pagetable[ptidx];
 	pageaddr <= {{pte[15:8]}, {MARout[10:0]}};
 
-	pageaddr_t <= pageaddr[15:0];
+	//pageaddr_t <= pageaddr[15:0];
 end
 
 always @(negedge clk) begin
@@ -302,7 +340,7 @@ reg [15:0] sPC = 0;
 
 always @*
 begin
-	if (bank==0) begin
+	if (bank==0 || ureg == 1) begin
 
 		case(regr0s)
 		4'b0000: regr0 = 0;
@@ -313,6 +351,7 @@ begin
 		4'b0101: regr0 = R5;
 		4'b0110: regr0 = R6;
 		4'b0111: regr0 = PC;
+		4'b1110: regr0 = 16'hdead;
 		4'b1111: regr0 = CRout;
 	  default: regr0 = 0;
 		endcase
@@ -339,6 +378,7 @@ begin
 		4'b0101: regr0 = sR5;
 		4'b0110: regr0 = sR6;
 		4'b0111: regr0 = sPC;
+		4'b1110: regr0 = CR2out;
 		4'b1111: regr0 = CRout;
 	  default: regr0 = 0;
 		endcase
@@ -371,10 +411,14 @@ begin
 		sR3 <= 0;
 		sR4 <= 0;
 		sR5 <= 0;
-	end else if (irq == 1 || fault == 1) begin
+	end else if ((irq == 1 || fault == 1) && !deassert_trap) begin
 		// Interrupt and fault logic
 		// push trapnr into sR1 on interrupt
 		sR1 <= { {8'b00000000}, {trapnr} };
+		if (syscall_irq) begin
+			// push syscall nr into sR2
+			sR2 <= ALUout;
+		end
 	end else if (reg_load) begin
 		if (bank==0) begin
 	    case(regws)
@@ -424,7 +468,9 @@ begin
 	// PC counter reg
 	if (reset) begin
 		PC <= 0;
-		sPC <= IVEC;
+		sPC <= ivec_out;
+	end else if (syscall_irq) begin
+		sPC <= ivec_out;
 	end else if (mar_force) begin
 		PC <= PC - 16'h2;
 	end else if (incr_pc_out) begin
@@ -433,7 +479,7 @@ begin
 		else
 			sPC <= sPC + 16'h2;
 	end else if (reti) begin
-		sPC <= IVEC;
+		sPC <= ivec_out;
 	end else if (reg_load && regws == 4'b0111) begin
 		if (bank == 0)
 			PC <= regw;

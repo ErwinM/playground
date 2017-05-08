@@ -12,7 +12,7 @@ ce,
 clk
 );
 
-input [15:0] address;
+input [17:0] address;
 input [1:0] be;
 input clk, ce;
 output [15:0] data;

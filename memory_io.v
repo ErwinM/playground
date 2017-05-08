@@ -20,7 +20,7 @@ module memory_io(
  UARTce,
  HEXwe,
  BIOSread,
- clk
+ bios
 );
 
 input [15:0] CPUwrite, RAMread, BIOSread;
@@ -29,25 +29,27 @@ output [15:0] CPUread, RAMwrite;
 input [7:0] UARTread;
 output [7:0] UARTwrite;
 
-input [15:0] CPUaddr;
-output [15:0] RAMaddr;
+input [18:0] CPUaddr;
+output [17:0] RAMaddr;
 output [2:0] UARTaddr;
 
-input we, be, re, clk;
+input we, be, re, bios;
 output RAMwe, UARTwe, UARTre, UARTce, HEXwe;
 output [1:0] RAMbe;
 
 // internal thingies
-wire [15:0] RAMaddr, CPUread;
+wire [17:0] RAMaddr;
+wire [15:0] CPUread;
 reg [15:0] data, wdata, BIOSdata; //CPUread;
-reg RAMwe, UARTwe, UARTce, UARTre, HEXwe, bios;
+reg RAMwe, UARTwe, UARTce, UARTre, HEXwe;
 
 reg [1:0] RAMbe;
 
 // Memory map
-// 0x0000 - 0xff7f -> RAM
-// 0xff80 - 0ff8f  -> 7SEG display
-// 0xff90 - 0ff9f  -> UART 16450
+// 0x0000 - 0xff6f -> RAM
+// 0xff70 - 0xff7f -> Interrupt vector (16 instructions max, push fault_nr and branch_) - is just RAM
+// 0xff80 - 0xff8f -> 7SEG display (and other onboard i/o later (e.g. switches and buttons))
+// 0xff90 - 0xff9f -> UART 16450
 
 parameter HEXbase = 16'hff80, Sbase = 16'hff90;
 
@@ -71,15 +73,15 @@ assign RAMaddr[11] = CPUaddr[12];
 assign RAMaddr[12] = CPUaddr[13];
 assign RAMaddr[13] = CPUaddr[14];
 assign RAMaddr[14] = CPUaddr[15];
-assign RAMaddr[15] = 0;
+assign RAMaddr[15] = CPUaddr[16];
+assign RAMaddr[16] = CPUaddr[17];
+assign RAMaddr[17] = CPUaddr[18];
 
-
-// For now we only have 8 dev addr which get translated straight to the 16450
 assign UARTaddr[0] = CPUaddr[0];
 assign UARTaddr[1] = CPUaddr[1];
 assign UARTaddr[2] = CPUaddr[2];
 
-
+// this is the memory map implementation
 assign CPUread = (CPUaddr < 16'h0800 && bios == 1) ? BIOSdata :
 								 (CPUaddr >= Sbase) ? UARTread :
 								 (CPUaddr >= HEXbase) ? 16'hcafe :
@@ -91,7 +93,6 @@ always @* begin
 	UARTce = 0;
 	UARTre = 0;
 	HEXwe = 0;
-	bios = 0;
 
 	if (we) begin
 		if (CPUaddr < HEXbase) begin
@@ -108,8 +109,10 @@ always @* begin
 			UARTre = 1;
 	end
 
-	wdata = CPUwrite;
-  RAMbe = 2'b11;
+	if (re) begin
+		RAMbe = 2'b11;
+	end
+
   if(we == 1) begin
     if(be == 1) begin
       if(CPUaddr[0] == 1) begin
@@ -122,26 +125,26 @@ always @* begin
         wdata[5] = CPUwrite[5];
         wdata[6] = CPUwrite[6];
         wdata[7] = CPUwrite[7];
-        wdata[8] = 0;
-        wdata[9] = 0;
-        wdata[10] = 0;
-        wdata[11] = 0;
-        wdata[12] = 0;
-        wdata[13] = 0;
-        wdata[14] = 0;
-        wdata[15] = 0;
-        //ue = 0;
+        wdata[8] = 1'b0;
+        wdata[9] = 1'b0;
+        wdata[10] = 1'b0;
+        wdata[11] = 1'b0;
+        wdata[12] = 1'b0;
+        wdata[13] = 1'b0;
+        wdata[14] = 1'b0;
+        wdata[15] = 1'b0;
+        //ue = 1'b0;
         //le = 1;
         RAMbe = 2'b01;
       end else begin
-        wdata[0] = 0;
-        wdata[1] = 0;
-        wdata[2] = 0;
-        wdata[3] = 0;
-        wdata[4] = 0;
-        wdata[5] = 0;
-        wdata[6] = 0;
-        wdata[7] = 0;
+        wdata[0] = 1'b0;
+        wdata[1] = 1'b0;
+        wdata[2] = 1'b0;
+        wdata[3] = 1'b0;
+        wdata[4] = 1'b0;
+        wdata[5] = 1'b0;
+        wdata[6] = 1'b0;
+        wdata[7] = 1'b0;
         wdata[8] = CPUwrite[0];
         wdata[9] = CPUwrite[1];
         wdata[10] = CPUwrite[2];
@@ -154,7 +157,10 @@ always @* begin
         //le = 0;
         RAMbe = 2'b10;
       end
-    end
+    end else begin
+			wdata = CPUwrite;
+		  RAMbe = 2'b11;
+		end
   end
 
 	data = RAMread;
@@ -199,13 +205,6 @@ always @* begin
 		end
 	end
 
-end
-
-always @(posedge clk) begin
-	// if we address memory above 0x800 the bios gets swapped out of the memory map
-	if (CPUaddr > 16'h0800) begin
-		bios = 0;
-	end
 end
 
 endmodule

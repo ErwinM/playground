@@ -27,11 +27,11 @@ wire [3:0] regr0s, regr1s, regws;
 wire [15:0] IRout;
 wire [3:0] state;
 wire mdr_load, mar_load, mar_load_decoder, reg_load, ram_load, ir_load, incr_pc, cond_chk, fault, irq, reti, incr_sp, decr_sp;
-wire wptb, wpte, ivec_load, syscall_irq, ureg;
+wire wptb, wpte, ivec_load, syscall_irq, ureg, sext, brk;
 
 parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
 
-assign brk = (state == 4'b1001) ? 1 : 0;
+assign brk = (state == 4'b1001) ? 1'b1 : 0;
 
 decoder decoder (
   .instr      (IRout),
@@ -67,6 +67,7 @@ decoder decoder (
 	.IVEC_LOAD	(ivec_load),
 	.SYSCALL		(syscall_irq),
 	.UREG				(ureg),
+	.SEXT				(sext),
   .clk        (clk)
 );
 
@@ -137,7 +138,7 @@ register IR (
 
 // Control reg
 wire [7:0] CRin, CRout;
-wire CRY, setCRY, uMode, sMode;
+wire CRY, setCRY, uMode, sMode, CRwe;
 
 controlreg Creg (
 	.reset		(reset),
@@ -162,9 +163,9 @@ register Ivec (
 
 // carry flag logic
 // carry flag is the only CR flag that gets set independently (i think)
-assign setCRY = (state == EXEC) ? 1 : 0;
+assign setCRY = (state == EXEC) ? 1'b1 : 0;
 assign CRin = regw[7:0];
-assign CRwe = (regws == 4'b1111 && reg_load) ? 1 : 0;
+assign CRwe = (regws == 4'b1111 && reg_load) ? 1'b1 : 0;
 assign sMode = CRout[0];
 not(uMode, CRout[0]);
 
@@ -177,6 +178,7 @@ alu alu (
   .x          (op0),
   .y          (op1),
   .f          (ALUfunc),
+	.sext				(sext),
   .out        (ALUout),
 	.carry_out	(CRY)
 );
@@ -255,7 +257,8 @@ always @(posedge clk) begin
 	// fault and trap logic
 
 	if (reset == 1) begin
-		bank <= 0;
+		// start in Supervisor mode...
+		bank <= 1;
 		deassert_trap <= 0;
 		mar_force <= 0;
 	end else if (state == 0 && fault == 1) begin
@@ -278,7 +281,7 @@ end
 reg [15:0] pagetable [0:512];
 reg [15:0] ptb, ptidx, pte, pageaddr_t;
 reg [18:0] pageaddr;
-wire pg_not_present, prot_f;
+wire page_not_present, prot_f;
 
 // page & prot fault logic
 not(page_not_present, pte[0]);

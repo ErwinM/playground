@@ -35,6 +35,7 @@ module decoder (
 	WPTE,
 	IVEC_LOAD,
 	UREG,
+	SEXT,
   clk
 );
 
@@ -42,7 +43,7 @@ input clk, reset, fault_r, irq_r, cont_r;
 input [15:0] instr;
 
 output MDR_LOAD, REG_LOAD, MAR_LOAD, IR_LOAD, RAM_LOAD, INCR_PC, BE, COND_CHK, HLT, RE, SYSCALL, RETI, DECR_SP, INCR_SP;
-output WPTB, WPTE, IVEC_LOAD, UREG;
+output WPTB, WPTE, IVEC_LOAD, UREG, SEXT;
 output [1:0] MDRS, OP0S, OP1S;
 output [15:0] IRimm;
 output [2:0] ALUfunc, cond;
@@ -214,6 +215,7 @@ assign BE = ROMread[40];
 assign WPTB = ROMread[5];
 assign WPTE = ROMread[4];
 or(RE, RE_fetch, ROMread[3]);
+assign SEXT = ROMread[2];
 assign IVEC_LOAD = (opcode == 6'd44 && state == DECODEM) ? 1'b1 : 1'b0;
 assign SYSCALL = (opcode == 6'd34 && state == DECODEM) ? 1'b1 : 1'b0;
 assign UREG = (opcode == 6'd36 && (state == EXECM || state == EXEC)) ? 1'b1 : 1'b0;

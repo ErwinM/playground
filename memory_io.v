@@ -113,54 +113,52 @@ always @* begin
 		RAMbe = 2'b11;
 	end
 
-  if(we == 1) begin
-    if(be == 1) begin
-      if(CPUaddr[0] == 1) begin
-        // address is odd - we need to write to the low byte
-        wdata[0] = CPUwrite[0];
-        wdata[1] = CPUwrite[1];
-        wdata[2] = CPUwrite[2];
-        wdata[3] = CPUwrite[3];
-        wdata[4] = CPUwrite[4];
-        wdata[5] = CPUwrite[5];
-        wdata[6] = CPUwrite[6];
-        wdata[7] = CPUwrite[7];
-        wdata[8] = 1'b0;
-        wdata[9] = 1'b0;
-        wdata[10] = 1'b0;
-        wdata[11] = 1'b0;
-        wdata[12] = 1'b0;
-        wdata[13] = 1'b0;
-        wdata[14] = 1'b0;
-        wdata[15] = 1'b0;
-        //ue = 1'b0;
-        //le = 1;
-        RAMbe = 2'b01;
-      end else begin
-        wdata[0] = 1'b0;
-        wdata[1] = 1'b0;
-        wdata[2] = 1'b0;
-        wdata[3] = 1'b0;
-        wdata[4] = 1'b0;
-        wdata[5] = 1'b0;
-        wdata[6] = 1'b0;
-        wdata[7] = 1'b0;
-        wdata[8] = CPUwrite[0];
-        wdata[9] = CPUwrite[1];
-        wdata[10] = CPUwrite[2];
-        wdata[11] = CPUwrite[3];
-        wdata[12] = CPUwrite[4];
-        wdata[13] = CPUwrite[5];
-        wdata[14] = CPUwrite[6];
-        wdata[15] = CPUwrite[7];
-        //ue = 1;
-        //le = 0;
-        RAMbe = 2'b10;
-      end
+	wdata = CPUwrite;
+  RAMbe = 2'b11;
+  //if(we == 1) begin
+  if(be == 1) begin
+    if(CPUaddr[0] == 1) begin
+      // address is odd - we need to write to the low byte
+      wdata[0] = CPUwrite[0];
+      wdata[1] = CPUwrite[1];
+      wdata[2] = CPUwrite[2];
+      wdata[3] = CPUwrite[3];
+      wdata[4] = CPUwrite[4];
+      wdata[5] = CPUwrite[5];
+      wdata[6] = CPUwrite[6];
+      wdata[7] = CPUwrite[7];
+      wdata[8] = 1'b0;
+      wdata[9] = 1'b0;
+      wdata[10] = 1'b0;
+      wdata[11] = 1'b0;
+      wdata[12] = 1'b0;
+      wdata[13] = 1'b0;
+      wdata[14] = 1'b0;
+      wdata[15] = 1'b0;
+      //ue = 1'b0;
+      //le = 1;
+      RAMbe = 2'b01;
     end else begin
-			wdata = CPUwrite;
-		  RAMbe = 2'b11;
-		end
+      wdata[0] = 1'b0;
+      wdata[1] = 1'b0;
+      wdata[2] = 1'b0;
+      wdata[3] = 1'b0;
+      wdata[4] = 1'b0;
+      wdata[5] = 1'b0;
+      wdata[6] = 1'b0;
+      wdata[7] = 1'b0;
+      wdata[8] = CPUwrite[0];
+      wdata[9] = CPUwrite[1];
+      wdata[10] = CPUwrite[2];
+      wdata[11] = CPUwrite[3];
+      wdata[12] = CPUwrite[4];
+      wdata[13] = CPUwrite[5];
+      wdata[14] = CPUwrite[6];
+      wdata[15] = CPUwrite[7];
+      //ue = 1;
+      //le = 0;
+      RAMbe = 2'b10;
+    end
   end
 
 	data = RAMread;

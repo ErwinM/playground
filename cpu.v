@@ -221,6 +221,15 @@ always @* begin
   endcase
 
   // check if we need to skip
+	// condS  cond  0  neg  pos
+	// LTEQ    3   1  1    0
+	// EQ      0   1  0    0
+	// GTEQ    5   1  0    1
+	// NEQ     1   0  1    1
+	// LT      2   0  1    0
+	// GT      4   0  0    1
+	// ULT     6   0  1    0 (unsigned)
+	// ULTEQ   7   1  1    0 (unsigned)
   skip = 0;
   if (cond_chk == 1) begin
     if(ALUout == 0) begin
@@ -229,14 +238,14 @@ always @* begin
         skip = 1;
       end
     end
-		if (ALUout[15] == 1) begin
-      // ALUout is neg
+		if ($signed(op0) < $signed(op1)) begin
+      // OP0 < OP1
       if(cond == 3 | cond == 1 | cond == 2) begin
         skip = 1;
       end
     end
-		if(ALUout[15] == 0 && ALUout != 0) begin
-      // ALUout is pos
+		if ($signed(op0) > $signed(op1))  begin
+      // OP0 > OP1
       if(cond == 5 | cond == 1 | cond == 4) begin
         skip = 1;
       end
@@ -247,7 +256,6 @@ always @* begin
 				skip = 1;
 			end
 		end
-    // TO DO: unsigned conditions
   end
 
 end
@@ -289,7 +297,9 @@ and(prot_f, uMode, pte[1]);
 and(page_fault, CRout[2], page_not_present);
 and(prot_fault, CRout[2], prot_f);
 
-assign RAMaddr = (CRout[2] == 1) ? pageaddr : MARout;
+assign RAMaddr = (MARout >= 16'hff80) ? MARout :
+								 (CRout[2] == 1) ? pageaddr :
+								 MARout;
 
 always @* begin
 	ptidx <= ptb + {{11{1'b0}},{MARout[15:11]}};

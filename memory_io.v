@@ -83,6 +83,7 @@ assign UARTaddr[2] = CPUaddr[2];
 
 // this is the memory map implementation
 assign CPUread = (CPUaddr < 16'h0800 && bios == 1) ? BIOSdata :
+								 (CPUaddr > 16'hffff) ? data :
 								 (CPUaddr >= Sbase) ? UARTread :
 								 (CPUaddr >= HEXbase) ? 16'hcafe :
 								 data;

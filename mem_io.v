@@ -1,0 +1,98 @@
+// Memory I/O & bus controller
+
+module mem_io(
+ o_CPU_read,
+ i_CPU_write,
+ i_CPU_addr,
+ i_CPU_be,
+ i_CPU_re,
+ i_CPU_we,
+ i_RAM_read,
+ o_RAM_write,
+ o_RAM_addr,
+ o_RAM_be,
+ o_RAM_we,
+ i_BIOS_ena,
+ i_BIOS_read,
+ i_IO_read,
+ o_IO_write,
+ o_IO_addr,
+ o_IO_be,
+ o_IO_we,
+ o_IO_re
+);
+
+
+// data buses
+input [15:0] i_CPU_write, i_RAM_read, i_BIOS_read, i_IO_read;
+output [15:0] o_CPU_read, o_RAM_write, o_IO_write;
+
+// address busses
+input [18:0] i_CPU_addr;
+output [17:0] o_RAM_addr;
+output [7:0] o_IO_addr;
+
+// control signals
+input i_CPU_we, i_CPU_be, i_CPU_re, i_BIOS_ena;
+output o_RAM_we, o_IO_be, o_IO_we, o_IO_re;
+output [1:0] o_RAM_be;
+wire io_space;
+
+// Address translations
+assign o_RAM_addr = i_CPU_addr[18:1]; // shift right one: bytes to words
+assign io_space = (i_CPU_addr > 16'hff00 && i_CPU_addr < 16'hffff) ? 1'b1 : 1'b0;
+assign o_IO_addr = (io_space) ? i_CPU_addr[7:0] : 1'b0;
+
+// regs for control signals
+reg [1:0] o_RAM_be;
+
+// regs for byte translations
+reg [15:0] RAMread, RAMwrite;
+
+// assign the outputs
+assign o_CPU_read = (i_CPU_addr < 16'h0800 && i_BIOS_ena == 1) ? i_BIOS_read :
+									 	(io_space) ? i_IO_read :
+										RAMread;
+
+assign o_RAM_write = RAMwrite;
+assign o_RAM_we = i_CPU_we;
+assign o_IO_write = i_CPU_write; // up to device wrappers to implement byte addressing if req
+assign o_IO_re = i_CPU_re;
+assign o_IO_we = i_CPU_we;
+assign o_IO_be = i_CPU_be;
+
+always @* begin
+	// Byte Enable for READING ram
+	RAMread = i_RAM_read;
+	if(i_CPU_be == 1)begin
+    if(i_CPU_addr[0] == 1) begin
+      // address is odd - we need to read the low byte
+			RAMread = i_RAM_read & 16'hff;
+		end else begin
+			RAMread = i_RAM_read >> 8;
+		end
+	end
+
+	// Byte enable for WRITING ram
+	RAMwrite = i_CPU_write;
+	o_RAM_be = 2'b11;
+	if(i_CPU_be == 1)begin
+    if(i_CPU_addr[0] == 1) begin
+      // address is odd - we need to read the low byte
+			RAMwrite = i_CPU_write & 16'hff;
+			o_RAM_be = 2'b01;
+		end else begin
+			RAMwrite = i_CPU_write >> 8;
+			o_RAM_be = 2'b10;
+		end
+	end
+end
+
+
+// Memory map
+// 0x0000 - 0xff00 -> RAM
+// 0xff80 - 0xff8f -> 7SEG display (and other onboard i/o later (e.g. switches and buttons))
+// 0xff90 - 0xff9f -> UART 16450
+// 0xffa0 - 0xffaf -> SD card (wishbone)
+
+endmodule

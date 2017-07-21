@@ -1,4 +1,4 @@
-module hex_display(
+module hex_control(
 reset, RAMin, PORTin, clk, we, d0,d1,d2,d3);
 
 input clk, we, reset;

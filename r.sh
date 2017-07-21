@@ -9,7 +9,9 @@ cp ~/code/dme_v3/asm/A_ram.mif ../PLAY
 cp ~/code/dme_v3/asm/A_ram.mif .
 cp ~/code/dme_v3/asm/A_simple.hex .
 
-iverilog computer_tb.v decoder.v rom.v memory_io.v ram.v register.v bios.v register_posedge.v controlreg.v cpu.v alu.v computer.v t16450.v irq_encoder.v
+#iverilog computer_tb.v decoder.v rom.v memory_io.v ram.v register.v bios.v register_posedge.v controlreg.v cpu.v alu.v computer.v t16450.v irq_encoder.v
+
+iverilog computer_tb.v decoder.v rom.v mem_io.v ram.v register.v bios.v register_posedge.v controlreg.v cpu.v alu.v computer2.v uart_io_wrap.v t16450.v irq_encoder.v sd_io_wrap.v sdspi.v llsdspi.v
 
 vvp a.out
 

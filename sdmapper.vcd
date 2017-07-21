@@ -1,0 +1,136 @@
+$date
+	Sat Jul 15 16:10:48 2017
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module sdmapper_tb $end
+$var wire 1 ! sd_we $end
+$var wire 1 " sd_out $end
+$var wire 1 # sd_addr $end
+$var wire 1 $ mem_out $end
+$var reg 1 % clk $end
+$var reg 4 & mem_addr [3:0] $end
+$var reg 16 ' mem_in [15:0] $end
+$var reg 1 ( mem_we $end
+$var reg 1 ) reset $end
+$var reg 32 * sd_in [31:0] $end
+$scope module U0 $end
+$var wire 1 % clk $end
+$var wire 4 + mem_addr [3:0] $end
+$var wire 16 , mem_in [15:0] $end
+$var wire 1 ( mem_we $end
+$var wire 1 ) reset $end
+$var wire 32 - sd_in [31:0] $end
+$var wire 1 ! sd_we $end
+$var wire 32 . sd_out [31:0] $end
+$var wire 2 / sd_addr [1:0] $end
+$var wire 16 0 mem_out [15:0] $end
+$var wire 3 1 adj_addr [2:0] $end
+$var reg 16 2 SDi_high [15:0] $end
+$var reg 16 3 SDi_low [15:0] $end
+$var reg 16 4 SDo_high [15:0] $end
+$var reg 16 5 SDo_low [15:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+b0 5
+b0 4
+b0 3
+b0 2
+bx 1
+b0 0
+bx /
+b0 .
+b11001010111111101011101010111110 -
+bx ,
+bx +
+b11001010111111101011101010111110 *
+1)
+x(
+bx '
+bx &
+0%
+0$
+x#
+0"
+x!
+$end
+#5
+1%
+#10
+b1100101011111110 0
+b1100101011111110 2
+b1011101010111110 3
+0!
+0#
+b0 1
+b0 /
+0%
+b0 &
+b0 +
+0)
+#15
+1%
+#20
+0%
+b1 &
+b1 +
+#25
+1%
+#30
+b1111101011111010 .
+b1111101011111010 5
+b1011101010111110 0
+1!
+b1 1
+0%
+b1111101011111010 '
+b1111101011111010 ,
+1(
+b10 &
+b10 +
+#35
+1%
+#40
+0%
+b11 &
+b11 +
+#45
+1%
+#50
+b11111010111110101111101011111010 .
+b1111101011111010 4
+b1100101011111110 0
+0!
+1#
+b10 1
+b1 /
+0%
+b100 &
+b100 +
+#55
+1%
+#60
+0%
+#65
+1%
+#70
+0%
+#75
+1%
+#80
+0%
+#85
+1%
+#90
+0%
+#95
+1%
+#100
+0%

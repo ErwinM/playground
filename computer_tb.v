@@ -1,7 +1,7 @@
 module computer_tb;
   reg clk, reset, uart_rx, irq, fault, cont, bios_e;
 
-computer U0 (
+computer2 U0 (
   .clock_50_b7a   (clk),
 	.reset					(reset),
 	.uart_rx				(uart_rx),

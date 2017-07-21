@@ -20,11 +20,17 @@ module memory_io(
  UARTce,
  HEXwe,
  BIOSread,
- bios
+ bios,
+ SDmap_r,
+ SDmap_w,
+ SDmap_addr,
+ SDmap_we
 );
 
-input [15:0] CPUwrite, RAMread, BIOSread;
-output [15:0] CPUread, RAMwrite;
+output [3:0] SDmap_addr;
+
+input [15:0] CPUwrite, RAMread, BIOSread, SDmap_r;
+output [15:0] CPUread, RAMwrite, SDmap_w;
 
 input [7:0] UARTread;
 output [7:0] UARTwrite;
@@ -34,14 +40,15 @@ output [17:0] RAMaddr;
 output [2:0] UARTaddr;
 
 input we, be, re, bios;
-output RAMwe, UARTwe, UARTre, UARTce, HEXwe;
+output RAMwe, UARTwe, UARTre, UARTce, HEXwe, SDmap_we;
 output [1:0] RAMbe;
 
 // internal thingies
 wire [17:0] RAMaddr;
 wire [15:0] CPUread;
-reg [15:0] data, wdata, BIOSdata; //CPUread;
-reg RAMwe, UARTwe, UARTce, UARTre, HEXwe;
+reg [15:0] data, wdata, BIOSdata, SDdata;
+reg RAMwe, UARTwe, UARTce, UARTre, HEXwe, SDmap_we;
+reg [31:0] SDw_buf, SDr_buf;
 
 reg [1:0] RAMbe;
 
@@ -50,12 +57,14 @@ reg [1:0] RAMbe;
 // 0xff70 - 0xff7f -> Interrupt vector (16 instructions max, push fault_nr and branch_) - is just RAM
 // 0xff80 - 0xff8f -> 7SEG display (and other onboard i/o later (e.g. switches and buttons))
 // 0xff90 - 0xff9f -> UART 16450
+// 0xffa0 - 0xffaf -> SD card (wishbone)
 
-parameter HEXbase = 16'hff80, Sbase = 16'hff90;
+parameter HEXbase = 16'hff80, Sbase = 16'hff90, SDbase = 16'hffa0;
 
 assign RAMwrite = wdata;
-
 assign UARTwrite = CPUwrite[7:0];
+assign SDmap_w = CPUwrite;
+assign SDmap_addr = CPUaddr[3:0];
 
 // shift addr right one bit to translate from byte address to word address (RAM is in words)
 assign RAMaddr[0] = CPUaddr[1];
@@ -84,6 +93,7 @@ assign UARTaddr[2] = CPUaddr[2];
 // this is the memory map implementation
 assign CPUread = (CPUaddr < 16'h0800 && bios == 1) ? BIOSdata :
 								 (CPUaddr > 16'hffff) ? data :
+								 (CPUaddr >= SDbase) ? SDdata :
 								 (CPUaddr >= Sbase) ? UARTread :
 								 (CPUaddr >= HEXbase) ? 16'hcafe :
 								 data;
@@ -91,17 +101,22 @@ assign CPUread = (CPUaddr < 16'h0800 && bios == 1) ? BIOSdata :
 always @* begin
 	RAMwe = 0;
 	UARTwe = 0;
+	SDmap_we = 0;
 	UARTce = 0;
 	UARTre = 0;
 	HEXwe = 0;
 
 	if (we) begin
-		if (CPUaddr < HEXbase) begin
+		if (CPUaddr > 16'hffff) begin
+			RAMwe = 1;
+		end else if (CPUaddr < HEXbase) begin
 			RAMwe = 1;
 		end else if (CPUaddr < Sbase) begin
 			HEXwe = 1;
-		end else if (CPUaddr >= Sbase) begin
+		end else if (CPUaddr < SDbase) begin
 			UARTwe = 1;
+		end else if (CPUaddr >= SDbase) begin
+			SDmap_we = 1;
 		end
 	end
 
@@ -203,6 +218,17 @@ always @* begin
 			BIOSdata = BIOSread >> 8;
 		end
 	end
+
+	SDdata = SDmap_r;
+	if(be == 1)begin
+    if(CPUaddr[0] == 1) begin
+      // address is odd - we need to read the low byte
+			SDdata = SDmap_r & 16'hff;
+		end else begin
+			SDdata = SDmap_r >> 8;
+		end
+	end
+
 
 end
 

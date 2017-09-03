@@ -1,15 +1,11 @@
 module cpu (
   reset,
-	RAMin,
+  RAMin,
   RAMout,
-  RAMaddr,
-	we,
+  we,
 	re,
+  RAMaddr,
   be,
-	// PGTABLEin,
-// 	PGTABLEout,
-// 	PGTABLEaddr,
-// 	PGTABLEwe,
 	hlt,
 	UART_intr,
 	cont,
@@ -36,8 +32,6 @@ wire wptb, wpte, ivec_load, syscall_irq, ureg, sext, brk;
 parameter FETCH = 4'b0001, FETCHM = 4'b0010, DECODE = 4'b0011, DECODEM = 4'b0100, READ = 4'b0101, READM = 4'b0110, EXEC = 4'b0111, EXECM = 4'b1000;
 
 assign brk = (state == 4'b1001) ? 1'b1 : 0;
-wire handle_irq;
-assign handle_irq = irq & CRout[3];
 
 decoder decoder (
   .instr      (IRout),
@@ -65,7 +59,7 @@ decoder decoder (
   .reset      (reset),
 	.HLT				(hlt),
 	.fault_r		(fault),
-	.irq_r			(handle_irq),
+	.irq_r			(irq),
 	.RETI				(reti),
 	.cont_r			(cont),
 	.WPTB				(wptb),
@@ -143,18 +137,16 @@ register IR (
 );
 
 // Control reg
-wire [7:0] CRin, CRout, CRread;
+wire [7:0] CRin, CRout;
 wire CRY, setCRY, uMode, sMode, CRwe;
 
 controlreg Creg (
 	.reset		(reset),
 	.clk			(clk),
 	.in				(CRin),
-	.curr_out	(CRout),
-	.read_out (CRread),
+	.out			(CRout),
 	.we				(CRwe),
 	.bank			(bank),
-	.ureg     (ureg),
 	.CRY			(CRY),
 	.setCRY		(setCRY)
 );
@@ -245,24 +237,23 @@ always @* begin
       if(cond == 3 | cond == 0 | cond == 5 | cond == 7) begin
         skip = 1;
       end
-    end else begin
-			if ($signed(op0) < $signed(op1)) begin
+    end
+		if ($signed(op0) < $signed(op1)) begin
       // OP0 < OP1
-      	if(cond == 3 | cond == 1 | cond == 2) begin
-        	skip = 1;
-      	end
-			end
-    	if ($signed(op0) > $signed(op1))  begin
+      if(cond == 3 | cond == 1 | cond == 2) begin
+        skip = 1;
+      end
+    end
+		if ($signed(op0) > $signed(op1))  begin
       // OP0 > OP1
-	      if(cond == 5 | cond == 1 | cond == 4) begin
-	        skip = 1;
-	      end
-    	end
-			if(CRout[1] == 1) begin
+      if(cond == 5 | cond == 1 | cond == 4) begin
+        skip = 1;
+      end
+    end
+		if(CRout[1] == 1) begin
 			// carry flag is set (unsigned conditional LT LTE)
-				if(cond == 6 | cond == 7) begin
-					skip = 1;
-				end
+			if(cond == 6 | cond == 7) begin
+				skip = 1;
 			end
 		end
   end
@@ -282,7 +273,7 @@ always @(posedge clk) begin
 		bank <= 1'b1;
 		mar_force <= 1'b1; // force MAR_LOAD
 		deassert_trap <= 1'b1;
-	end else if (state == 0 && handle_irq) begin
+	end else if (state == 0 && irq == 1 && CRout[3] == 1) begin
 		bank <= 1'b1;
 		deassert_trap <= 1;
 	end else if (reti == 1) begin
@@ -374,7 +365,7 @@ begin
 		4'b0110: regr0 = R6;
 		4'b0111: regr0 = PC;
 		4'b1110: regr0 = 16'hdead;
-		4'b1111: regr0 = CRread;
+		4'b1111: regr0 = CRout;
 	  default: regr0 = 0;
 		endcase
 
@@ -401,7 +392,7 @@ begin
 		4'b0110: regr0 = sR6;
 		4'b0111: regr0 = sPC;
 		4'b1110: regr0 = CR2out;
-		4'b1111: regr0 = CRread;
+		4'b1111: regr0 = CRout;
 	  default: regr0 = 0;
 		endcase
 
@@ -433,16 +424,16 @@ begin
 		sR3 <= 0;
 		sR4 <= 0;
 		sR5 <= 0;
-	end else if ((irq == 1 || fault == 1) && deassert_trap) begin
+	end else if ((irq == 1 || fault == 1) && !deassert_trap) begin
 		// Interrupt and fault logic
 		// push trapnr into sR1 on interrupt
 		sR1 <= { {8'b00000000}, {trapnr} };
 		if (syscall_irq) begin
 			// push syscall nr into sR2
-			// sR2 <= ALUout;
+			sR2 <= ALUout;
 		end
 	end else if (reg_load) begin
-		if (bank==0 || ureg==1) begin
+		if (bank==0) begin
 	    case(regws)
 			4'b0001: R1 <= regw;
 			4'b0010: R2 <= regw;
@@ -481,7 +472,7 @@ begin
 		else
 			sR6 <= sR6 - 16'h2;
 	end else if (reg_load && regws == 4'b0110) begin
-		if (bank == 0 || ureg == 1)
+		if (bank == 0)
 			R6 <= regw;
 		else
 			sR6 <= regw;
@@ -503,7 +494,7 @@ begin
 	end else if (reti) begin
 		sPC <= ivec_out;
 	end else if (reg_load && regws == 4'b0111) begin
-		if (bank == 0 || ureg == 1)
+		if (bank == 0)
 			PC <= regw;
 		else
 			sPC <= regw;

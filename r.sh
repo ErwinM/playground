@@ -5,7 +5,7 @@ set -e
 cp ~/code/dme_v3/micro/micro.list .
 cp ~/code/dme_v3/micro/micro.list ../PLAY
 
-cp ~/code/dme_v3/asm/A_ram.mif ../PLAY
+cp ~/code/dme_v3/asm/A_ram.mif ../PLAY/asm.mif
 cp ~/code/dme_v3/asm/A_ram.mif .
 cp ~/code/dme_v3/asm/A_simple.hex .
 

@@ -20,18 +20,21 @@ output irq, fault;
 output [7:0] trapnr;
 
 reg [7:0] trapnr;
-reg irq, fault;
+wire irq, fault;
 
-// this behavior is too simple, it needs to:
-// - buffer other irqs while a higher prio is asserted
-// - have a de-assert mechanism
+// i think this will now correctly buffer overlapping irqs
+// - the first trap will trigger bank 1 which will disable irq in control reg
+// - any trap that follows will be registered by the encoder, which will raise irq
+// - this in turn will trigger state 0 (on EVERY cycle...we have to change this)
+
+
+assign fault = (trapnr[0] | trapnr[1]);
+assign irq = (trapnr[2] | trapnr[3] | trapnr[4] | trapnr[5]);
 
 always @(posedge clk)
 begin
 	if (reset == 1) begin
 		trapnr <= 0;
-		irq <= 0;
-		fault <= 0;
 	end else if (prot_fault == 1) begin
 		trapnr <= trapnr | 8'b00000001;
   end else if (page_fault == 1) begin
@@ -64,19 +67,6 @@ begin
 		end else if (trapnr[7] == 1) begin
 			trapnr[7] <= 0;
 		end
-		fault <= 0;
-		irq <= 0;
-	end
-
-	if (trapnr) begin
-		if (trapnr[0] == 1 || trapnr[1] == 1) begin
-			fault <= 1;
-		end else begin
-			irq <= 1;
-		end
-	end else begin
-		fault <= 0;
-		irq <= 0;
 	end
 end
 

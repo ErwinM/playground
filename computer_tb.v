@@ -18,26 +18,30 @@ computer2 U0 (
 		bios_e = 0;
 		#20
 		reset = 0;
-		uart_rx = 1;
-		#750
-		uart_rx = 0;
-		#160
-		uart_rx =1;
-		#160
-		uart_rx =0;
-		#160
-		uart_rx =1;
-		#160
-		uart_rx =0;
-		#320
-		uart_rx =1;
-		#320;
-		uart_rx = 0;
-		#160
-		uart_rx =1;
-		uart_rx = 0;
-		#3000
-		uart_rx = 1;
+		#1000
+		irq = 1;
+		#20
+		irq = 0;
+		// uart_rx = 1;
+// 		#750
+// 		uart_rx = 0;
+// 		#160
+// 		uart_rx =1;
+// 		#160
+// 		uart_rx =0;
+// 		#160
+// 		uart_rx =1;
+// 		#160
+// 		uart_rx =0;
+// 		#320
+// 		uart_rx =1;
+// 		#320;
+// 		uart_rx = 0;
+// 		#160
+// 		uart_rx =1;
+// 		uart_rx = 0;
+// 		#3000
+// 		uart_rx = 1;
 
 
 
@@ -59,6 +63,10 @@ computer2 U0 (
     $dumpvars(0,computer_tb.U0.ram.memory[6]);
     $dumpvars(0,computer_tb.U0.ram.memory[7]);
     $dumpvars(0,computer_tb.U0.ram.memory[8]);
+    $dumpvars(0,computer_tb.U0.ram.memory[9]);
+    $dumpvars(0,computer_tb.U0.ram.memory[10]);
+    $dumpvars(0,computer_tb.U0.ram.memory[11]);
+    $dumpvars(0,computer_tb.U0.ram.memory[12]);
     $dumpvars(0,computer_tb.U0.ram.memory[128]);
     $dumpvars(0,computer_tb.U0.ram.memory[129]);
     $dumpvars(0,computer_tb.U0.ram.memory[130]);

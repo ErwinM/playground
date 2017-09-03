@@ -189,6 +189,7 @@ assign ALUfunc = ROMread[15:13];
 assign skipstate = ROMread[12:11];
 
 assign RETI = ROMread[8];
+assign UREG = ROMread[7];
 assign brk = ROMread[6];
 
 // csigs - only on xxM cycles
@@ -218,7 +219,7 @@ or(RE, RE_fetch, ROMread[3]);
 assign SEXT = ROMread[2];
 assign IVEC_LOAD = (opcode == 6'd44 && state == DECODEM) ? 1'b1 : 1'b0;
 assign SYSCALL = (opcode == 6'd34 && state == DECODEM) ? 1'b1 : 1'b0;
-assign UREG = (opcode == 6'd36 && (state == EXECM || state == EXEC)) ? 1'b1 : 1'b0;
+
 
 
 always @* begin

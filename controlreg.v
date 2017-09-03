@@ -2,9 +2,11 @@ module controlreg(
 	reset,
 	clk,
 	in,
-	out,
+	curr_out,
+	read_out,
 	we,
 	bank,
+	ureg,
 	CRY,
 	setCRY
 );
@@ -21,13 +23,16 @@ module controlreg(
 	// 	7
 
 
-input reset, clk, we, bank, CRY, setCRY;
+input reset, clk, we, bank, CRY, setCRY, ureg;
 input [7:0] in;
-output [7:0] out;
+output [7:0] curr_out, read_out;
 
 reg [7:0] uCR, sCR;
 
-assign out = (bank == 0) ? uCR : sCR;
+assign curr_out = (bank == 0) ? uCR : sCR;
+
+assign read_out = (ureg) ? uCR :
+									(bank == 0) ? uCR : sCR;
 
 always @(posedge clk) begin
 
@@ -35,7 +40,7 @@ always @(posedge clk) begin
 		uCR <= 8'h8;
 		sCR <= 8'h1;
 	end else if (we) begin
-		if (bank == 0)
+		if (bank == 0 || ureg)
 			uCR <= in;
 		else
 			sCR <= in;

@@ -82,7 +82,7 @@ always @* begin
 			RAMwrite = i_CPU_write & 16'hff;
 			o_RAM_be = 2'b01;
 		end else begin
-			RAMwrite = i_CPU_write >> 8;
+			RAMwrite = i_CPU_write << 8;
 			o_RAM_be = 2'b10;
 		end
 	end
